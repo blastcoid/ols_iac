@@ -1,15 +1,15 @@
 # Create a Google Compute VPC
 # This VPC will serve as the primary network for other resources.
 resource "google_compute_network" "vpc" {
-  name                    = "${var.unit}-${var.env}-${var.code}-${var.feature[0]}"
-  auto_create_subnetworks = false  # Disable default subnets creation for more granular control
+  name                    = var.vpc_name
+  auto_create_subnetworks = var.auto_create_subnetworks # Disable default subnets creation for more granular control
 }
 
 # Create a Google Compute Subnetwork within the VPC
 # This subnetwork will be used by GKE and other resources within the VPC.
 # CIDR ranges are determined based on the environment.
 resource "google_compute_subnetwork" "subnet" {
-  name          = "${var.unit}-${var.env}-${var.code}-${var.feature[1]}-${var.region}"
+  name          = var.subnet_name
   ip_cidr_range = var.env == "dev" ? var.ip_cidr_range.dev : (
                 var.env == "stg" ? var.ip_cidr_range.stg : var.ip_cidr_range.prd
               )
@@ -29,7 +29,7 @@ resource "google_compute_subnetwork" "subnet" {
 # Create a Google Compute Router
 # This router will manage traffic routing and connect the VPC to external networks.
 resource "google_compute_router" "router" {
-  name    = "${var.unit}-${var.env}-${var.code}-${var.feature[2]}"
+  name    = var.router_name
   region  = var.region
   network = google_compute_network.vpc.self_link
 }
@@ -38,7 +38,7 @@ resource "google_compute_router" "router" {
 # This IP will be used by the Cloud NAT for outbound traffic.
 resource "google_compute_address" "address" {
   count  = var.nat_ip_allocate_option == "MANUAL_ONLY" ? 3 : 0
-  name   = "${var.unit}-${var.env}-${var.code}-${var.feature[3]}"
+  name   = var.address_name
   region = google_compute_subnetwork.subnet.region
 }
 
@@ -46,7 +46,7 @@ resource "google_compute_address" "address" {
 # Cloud NAT allows VM instances without external IPs to access the internet.
 # It uses either auto-allocated or manually specified IPs based on the configuration.
 resource "google_compute_router_nat" "nat" {
-  name                               = "${var.unit}-${var.env}-${var.code}-${var.feature[4]}"
+  name                               = var.nat_name
   router                             = google_compute_router.router.name
   region                             = var.region
   nat_ip_allocate_option             = var.nat_ip_allocate_option
@@ -67,7 +67,7 @@ resource "google_compute_router_nat" "nat" {
 
 resource "google_compute_firewall" "firewall" {
   for_each = var.vpc_firewall_rules
-  name     = "${var.unit}-${var.env}-${var.code}-${var.feature[5]}-${each.key}"
+  name     = "${var.firewall_name}-${each.key}"
   network  = google_compute_network.vpc.self_link
 
   dynamic "allow" {

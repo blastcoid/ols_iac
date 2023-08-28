@@ -2,18 +2,19 @@
 terraform {
   backend "gcs" {
     bucket = "ols-dev-storage-gcs-tfstate"
-    prefix = "vpc/ols-dev-vpc-network"
+    prefix = "gcp/network/ols-dev-network-vpc-main"
   }
 }
 
 # Deploy the VPC using the VPC module
 module "vpc" {
-  source  = "../../modules/network/vpc"
-  region  = "asia-southeast2"
-  unit    = "ols"
-  env     = "dev"
-  code    = "vpc"
-  feature = ["network", "subnet", "router", "address", "nat", "allow"]
+  source                  = "../../../../modules/gcp/network/vpc"
+  region                  = "asia-southeast2"
+  project_id              = "${var.unit}-platform-${var.env}"
+  env                     = var.env
+  vpc_name                = "${var.unit}-${var.env}-${var.code}-${var.feature[0]}"
+  auto_create_subnetworks = false
+  subnet_name             = "${var.unit}-${var.env}-${var.code}-${var.feature[1]}"
   ip_cidr_range = {
     dev = "10.0.0.0/16"
     stg = "10.1.0.0/16"
@@ -51,8 +52,12 @@ module "vpc" {
       }
     ]
   }
+  router_name                        = "${var.unit}-${var.env}-${var.code}-${var.feature[2]}"
+  address_name                       = "${var.unit}-${var.env}-${var.code}-${var.feature[3]}"
+  nat_name                           = "${var.unit}-${var.env}-${var.code}-${var.feature[4]}"
   nat_ip_allocate_option             = "AUTO_ONLY"
   source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
+  firewall_name                      = "${var.unit}-${var.env}-${var.code}-${var.feature[5]}"
   vpc_firewall_rules = {
     icmp = {
       name        = "allow-icmp"
