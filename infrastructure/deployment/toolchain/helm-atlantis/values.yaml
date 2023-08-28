@@ -1,0 +1,17 @@
+repoConfig: |
+ ---
+ repos:
+ - id: /.*/
+   branch: /.*/
+   repo_config_file: infrastructure/gcp/atlantis.yaml
+   plan_requirements: []
+   apply_requirements: []
+   workflow: default
+   allowed_overrides: [apply_requirements, plan_requirements]
+   allow_custom_workflows: false
+ workflows:
+   default:
+     plan:
+       steps: [init, plan]
+     apply:
+       steps: [apply]

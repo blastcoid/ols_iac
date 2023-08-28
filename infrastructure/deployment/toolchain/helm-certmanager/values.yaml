@@ -1,0 +1,7 @@
+installCRDs: true
+controller:
+  replicaCount: 1
+# if using GKE autopilot
+global:
+  leaderElection:
+    namespace: "ingress"

@@ -1,0 +1,16 @@
+- name: Update apt cache
+  become: yes
+  apt:
+    update_cache: yes
+  tags:
+    - install_ansible
+    - update_apt_cache
+
+- name: Install Ansible
+  become: yes
+  apt:
+    name: ansible
+    state: present
+  tags:
+    - install_ansible
+    - install_ansible_apt

@@ -1,0 +1,39 @@
+version: 3
+projects:
+  - dir: infrastructure/gcp/cloud-deployment/gcloud-storage-tfstate
+    apply_requirements: ["mergeable"]
+    autoplan:
+      when_modified: ["*.tf*"]
+  - dir: infrastructure/gcp/cloud-deployment/vpc
+    apply_requirements: ["mergeable"]
+    autoplan:
+      when_modified: ["*.tf*"]
+      enabled: true
+  - dir: infrastructure/gcp/cloud-deployment/gcloud-dns-ols
+    apply_requirements: ["mergeable"]
+    autoplan:
+      when_modified: ["*.tf*"]
+  - dir: infrastructure/gcp/cloud-deployment/gcloud-kms-ols
+    apply_requirements: ["mergeable"]
+    autoplan:
+      when_modified: ["*.tf*"]
+  - dir: infrastructure/gcp/cloud-deployment/gcompute-engine-atlantis
+    apply_requirements: ["mergeable"]
+    autoplan:
+      when_modified: ["*.tf*", "*.yml*"]
+  - dir: infrastructure/gcp/cloud-deployment/gkubernetes-engine-ols
+    apply_requirements: ["mergeable"]
+    autoplan:
+      when_modified: ["*.tf*"]
+  - dir: infrastructure/gcp/cloud-deployment/gcompute-engine-bastion
+    apply_requirements: ["mergeable"]
+    autoplan:
+      when_modified: ["*.tf*"]
+  - dir: infrastructure/gcp/k8s-deployment/helm-external-dns
+    apply_requirements: ["mergeable"]
+    autoplan:
+      when_modified: ["*.tf*"]
+  - dir: infrastructure/gcp/k8s-deployment/helm-argocd
+    apply_requirements: ["mergeable"]
+    autoplan:
+      when_modified: ["*.tf*"]

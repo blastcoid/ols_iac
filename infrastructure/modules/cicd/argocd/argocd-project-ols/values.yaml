@@ -1,0 +1,28 @@
+projects:
+  - name: "${unit}-${env}-${code}-${feature}"
+    description: Online Shop Project
+    sourceRepos:
+      - "https://github.com/${values_extra_vars.github_orgs}/${values_extra_vars.github_repo}.git"
+    destinations:
+      - namespace: "${env}"
+        server: ${values_extra_vars.k8s_server}
+    # Do not allow any app to be installed in `kube-system`
+      - namespace: "!kube-system"
+        server: "*"
+    roles:
+      - name: read-only
+        description: Read-only access
+        policies:
+          - p, proj:${unit}-${env}-${code}-${feature}:read-only, applications, get, ${unit}-${env}-${code}-${feature}/*
+          - p, proj:${unit}-${env}-${code}-${feature}:read-only, projects, get, ${unit}-${env}-${code}-${feature}
+        groupBindings:
+          - group: ${values_extra_vars.github_orgs}:readers
+            role: read-only
+      - name: write-access
+        description: Full write access
+        policies:
+          - p, proj:${unit}-${env}-${code}-${feature}:write-access, applications, *, ${unit}-${env}-${code}-${feature}/*
+          - p, proj:${unit}-${env}-${code}-${feature}:write-access, projects, *, ${unit}-${env}-${code}-${feature}
+        groupBindings:
+          - group: ${values_extra_vars.github_orgs}:writers
+            role: write-access

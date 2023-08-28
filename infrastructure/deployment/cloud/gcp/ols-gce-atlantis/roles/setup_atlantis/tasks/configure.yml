@@ -1,0 +1,55 @@
+- name: Create Atlantis config directory
+  become: yes
+  file:
+    path: "/etc/atlantis"
+    state: directory
+    owner: atlantis
+    group: atlantis
+    mode: "0755"
+  tags: 
+    - configure_atlantis
+    - create_atlantis_config_directory
+
+- name: Create Atlantis config file for flag
+  become: yes
+  copy:
+    content: |
+      repo-allowlist: "github.com/greyhats13/*"
+      gh-user: "greyhats"
+      gh-token: "{{ github_token }}"
+      gh-webhook-secret: "{{ github_secret }}"
+    dest: "/etc/atlantis/config.yml" # Ganti dengan path yang sesuai
+    owner: atlantis
+    group: atlantis
+    mode: "0600"
+  tags: 
+    - configure_atlantis
+    - create_atlantis_config_file_for_flag
+
+- name: Create Atlantis server side config file
+  become: yes
+  copy:
+    content: |
+      ---
+      repos:
+      - id: /.*/
+        branch: /.*/
+        repo_config_file: infrastructure/gcp/atlantis.yaml
+        plan_requirements: []
+        apply_requirements: []
+        workflow: default
+        allowed_overrides: [apply_requirements, plan_requirements]
+        allow_custom_workflows: false
+      workflows:
+        default:
+          plan:
+            steps: [init, plan]
+          apply:
+            steps: [apply]
+    dest: "/etc/atlantis/atlantis.yaml"
+    owner: atlantis
+    group: atlantis
+    mode: "0644"
+  tags: 
+    - configure_atlantis
+    - create_atlantis_server_side_config_file

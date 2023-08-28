@@ -1,0 +1,6 @@
+- hosts: all
+  roles:
+    - role: setup_kubectl
+      tags: 
+        - setup_kubectl
+        - initialization   
