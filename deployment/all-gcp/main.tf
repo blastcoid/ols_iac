@@ -408,7 +408,9 @@ module "gce-atlantis" {
     project_id        = "${var.unit}-platform-${var.env}"
     cluster_name      = module.gke_main.cluster_name
     region            = "${var.region}-a"
+    github_orgs       = "blastcoid"
     github_token      = module.secret-manager.secret_version_data["github-token-atlantis"]
+    github_token_iac  = module.secret-manager.secret_version_data["github-token-iac"]
     github_secret     = module.secret-manager.secret_version_data["github-secret"]
     atlantis_password = module.secret-manager.secret_version_data["atlantis-password"]
   }

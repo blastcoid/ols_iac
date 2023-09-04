@@ -15,7 +15,7 @@
   copy:
     content: |
       repo-allowlist: "github.com/blastcoid/*"
-      gh-user: "blastcoid"
+      gh-user: "{{ github_orgs }}"
       gh-token: "{{ github_token }}"
       gh-webhook-secret: "{{ github_secret }}"
     dest: "/etc/atlantis/config.yml" # Ganti dengan path yang sesuai

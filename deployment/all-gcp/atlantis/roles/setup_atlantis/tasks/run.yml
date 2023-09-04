@@ -10,6 +10,8 @@
       Type=simple
       User=atlantis
       ExecStart=/usr/local/bin/atlantis server --config /etc/atlantis/config.yml --repo-config /etc/atlantis/atlantis.yaml
+      Environment="GITHUB_TOKEN={{ github_token_iac }}"
+      Environment="GITHUB_OWNER={{ github_orgs }}"
       Restart=on-failure
 
       [Install]
@@ -28,4 +30,3 @@
   tags: 
     - run_atlantis
     - enable_and_start_atlantis_service
-

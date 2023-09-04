@@ -1,7 +1,7 @@
 terraform {
   backend "gcs" {
     bucket = "ols-dev-storage-gcs-tfstate"
-    prefix = "service/ols/ols-dev-service-iac"
+    prefix = "service/ols/ols-dev-service-genai"
   }
 }
 
