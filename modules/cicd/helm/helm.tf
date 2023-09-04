@@ -2,15 +2,6 @@
 locals {
   feature = try("${split("-", var.service_account_name)[3]}-${split("-", var.service_account_name)[4]}", split("-", var.service_account_name)[3])
 }
-# data source
-data "terraform_remote_state" "dns_blast" {
-  backend = "gcs"
-
-  config = {
-    bucket = "ols-dev-storage-gcs-tfstate"
-    prefix = "gcp/network/ols-dev-network-dns-blast"
-  }
-}
 
 # Create namespace
 resource "kubernetes_namespace" "namespace" {
@@ -38,15 +29,14 @@ resource "google_service_account" "gsa" {
 
 # Assign the specified IAM role to the service account
 resource "google_project_iam_member" "sa_iam" {
-  count   = var.create_service_account ? 1 : 0
+  count   = var.create_service_account ? length(var.google_service_account_role) : 0
   project = var.project_id
-  role    = var.google_service_account_role
+  role    = var.google_service_account_role[count.index]
   member  = "serviceAccount:${google_service_account.gsa[0].email}"
 }
 
-
 # binding service account to service account token creator
-resource "google_service_account_iam_binding" "external_dns_binding" {
+resource "google_service_account_iam_binding" "token_creator" {
   count              = var.create_service_account && var.use_workload_identity ? 1 : 0
   service_account_id = google_service_account.gsa[0].name
   role               = "roles/iam.serviceAccountTokenCreator"
@@ -55,7 +45,8 @@ resource "google_service_account_iam_binding" "external_dns_binding" {
     "serviceAccount:${var.project_id}.svc.id.goog[${local.namespace}/${var.service_account_name}]"
     ] : [
     "serviceAccount:${var.project_id}.svc.id.goog[${local.namespace}/${local.feature}-server]",
-    "serviceAccount:${var.project_id}.svc.id.goog[${local.namespace}/${local.feature}-application-controller]"
+    "serviceAccount:${var.project_id}.svc.id.goog[${local.namespace}/${local.feature}-application-controller]",
+    "serviceAccount:${var.project_id}.svc.id.goog[${local.namespace}/${local.feature}-repo-server]",
   ]
 }
 
@@ -64,8 +55,12 @@ resource "google_service_account_iam_binding" "workload_identity_binding" {
   count              = var.create_service_account && var.use_workload_identity ? 1 : 0
   service_account_id = google_service_account.gsa[0].name
   role               = "roles/iam.workloadIdentityUser"
-  members = [
+  members = local.feature != "argocd" ? [
     "serviceAccount:${var.project_id}.svc.id.goog[${local.namespace}/${var.service_account_name}]"
+    ] : [
+    "serviceAccount:${var.project_id}.svc.id.goog[${local.namespace}/${local.feature}-server]",
+    "serviceAccount:${var.project_id}.svc.id.goog[${local.namespace}/${local.feature}-application-controller]",
+    "serviceAccount:${var.project_id}.svc.id.goog[${local.namespace}/${local.feature}-repo-server]",
   ]
 }
 
@@ -84,7 +79,7 @@ resource "helm_release" "helm" {
         feature                    = local.feature
         dns_name                   = var.dns_name
         service_account_annotation = var.create_service_account ? google_service_account.gsa[0].email : null
-        extra_vars          = var.extra_vars
+        extra_vars                 = var.extra_vars
       }
       )
     }"
@@ -131,7 +126,7 @@ resource "kubernetes_manifest" "after_helm_manifest" {
     service_account_name = var.service_account_name,
     namespace            = local.namespace,
     dns_name             = var.dns_name
-    extra_vars    = var.extra_vars
+    extra_vars           = var.extra_vars
   }))
   depends_on = [helm_release.helm]
 }
@@ -146,7 +141,7 @@ resource "kubectl_manifest" "after_crd_installed" {
     service_account_name = var.service_account_name,
     namespace            = local.namespace,
     dns_name             = var.dns_name
-    extra_vars    = var.extra_vars
+    extra_vars           = var.extra_vars
   })
   depends_on = [helm_release.helm]
 }

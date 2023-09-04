@@ -5,4 +5,5 @@ secrets_ciphertext = {
   github-secret                     = "CiQAyKnBR/kPJ6pzZVcM6XO868BHch3qzdvU8+HztZ/RHzl0jdQSqgEAnwJ2Fq3t28MywsfsKm9jvNhjqYc728o3zrXqfQ6kdkColULN1eepo2QF4ZDYXojkP31yIHAVoppKEHZHFOa19h23qy2EgxxO9/oh1Y7buz8ApdW9UHNwpJl/W7k1yCP+wqXomA7DjlX1HjJ1auNYDATGCApbCHN6Jde7NIqOOe1HIvDGvoiR2viE2wKH+06OuwoYoLe4KabXCu002KbBPSsR9q4+HCSscQ=="
   github-oauth-client-secret-argocd = "CiQAyKnBRxtXYe1aafTPIJGW8ee5j7yyoFIfoLrlcKQUc+SgKvASUQCfAnYWCrbkqfhTBrQyWM/D7E6cZEdcJIVivUWwAVLo1x/nlasZ6JwA2TkWisolF8c4By7jRxiP1y6gDMYhSkJMbtOaH8Ox0mBGtxsZpEkKOw=="
   atlantis-password                 = "CiQAyKnBR2BStE6otJI0DMI/iWOHoBtwQpInsFDvrLOWblv/sboSMgCfAnYWwyAP1NlsUDxqwSgfPa5NCHUnmwLlxT9ArblaWE1jStixi6a+bxDP6gvQSF/r"
+  openai-api-key                    = "CiQAyKnBR3ESBLAQtY/qP+Ig1cVyyu036l5V74qBtevGNWfauwcSXACfAnYWFyODNDb6kUEdRq+16Mly8jTbka/3BRph1cOvZJCr+7aNKKX73nrwmwA5bDlgZll4MfxZFZ3L2iz1AmgcGQ2nWSK1Cw7TcfbnTv0R8rjO/PXq9tEdUUR/"
 }

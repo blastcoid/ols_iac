@@ -447,7 +447,7 @@ module "external-dns" {
   create_service_account      = true
   use_workload_identity       = true
   project_id                  = "${var.unit}-platform-${var.env}"
-  google_service_account_role = "roles/dns.admin"
+  google_service_account_role = ["roles/dns.admin"]
   create_managed_certificate  = false
   values                      = ["${file("external_dns/values.yaml")}"]
   helm_sets = [
@@ -522,11 +522,12 @@ module "helm_argocd" {
   create_service_account      = true
   use_workload_identity       = true
   project_id                  = "${var.unit}-platform-${var.env}"
-  google_service_account_role = "roles/container.admin"
+  google_service_account_role = ["roles/container.admin", "roles/secretmanager.secretAccessor"]
   dns_name                    = trimsuffix(module.dns_blast.dns_name, ".")
   extra_vars = {
     github_orgs      = "blastcoid"
     github_client_id = "9781757e794562ceb7e1"
+    AVP_VERSION      = "1.16.1"
   }
   helm_sets_sensitive = [
     {
@@ -536,7 +537,7 @@ module "helm_argocd" {
     {
       name  = "configs.secret.extra.dex\\.github\\.clientSecret"
       value = module.secret-manager.secret_version_data["github-oauth-client-secret-argocd"]
-    }
+    },
   ]
   depends_on = [
     module.gke_main,

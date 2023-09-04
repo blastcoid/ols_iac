@@ -105,14 +105,14 @@ module "artifact_repository" {
   }
 }
 
-# data "terraform_remote_state" "dns_blast" {
-#   backend = "gcs"
+data "terraform_remote_state" "dns_blast" {
+  backend = "gcs"
 
-#   config = {
-#     bucket = "ols-dev-storage-gcs-tfstate"
-#     prefix = "gcp/network/ols-dev-network-dns-blast"
-#   }
-# }
+  config = {
+    bucket = "ols-dev-storage-gcs-tfstate"
+    prefix = "gcp/network/ols-dev-network-dns-blast"
+  }
+}
 
 
 module "argocd_app" {
@@ -151,3 +151,4 @@ module "workload_identity" {
   service_account_name        = "${var.unit}-${var.code}-${var.feature}"
   google_service_account_role = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
 }
+

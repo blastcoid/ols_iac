@@ -3,8 +3,6 @@ global:
     iam.gke.io/gke-metadata-server-enabled: "true"
 
 configs:
-  secret:
-    AVP_TYPE: gcpsecretmanager
   cm:
     url: "https://${feature}.${env}.${dns_name}"
     dex.config: |
@@ -62,30 +60,11 @@ configs:
       # set admin policy for devops team in github orgs
       g, ${extra_vars.github_orgs}:devops, role:devops-role
       g, devops, role:devops-role
-  # ref: https://github.com/argoproj-labs/argocd-vault-plugin/blob/main/manifests/cmp-sidecar/cmp-plugin.yaml
   cmp:
     # -- Create the argocd-cmp-cm configmap
     create: true
     plugins:
-      argocd-vault-plugin-kustomize:
-        allowConcurrency: true
-
-        # Note: this command is run _before_ anything is done, therefore the logic is to check
-        # if this looks like a Kustomize bundle
-        discover:
-          find:
-            command:
-              - find
-              - "."
-              - -name
-              - kustomization.yaml
-        generate:
-          command:
-            - sh
-            - "-c"
-            - "kustomize build . | argocd-vault-plugin generate -"
-        lockRepo: false
-      argocd-vault-plugin-helm:
+      avp-helm:
         allowConcurrency: true
 
         # Note: this command is run _before_ any Helm templating is done, therefore the logic is to check
@@ -104,22 +83,8 @@ configs:
             - sh
             - "-c"
             - |
-              helm template $ARGOCD_APP_NAME -n $ARGOCD_APP_NAMESPACE . --include-crds |
+              helm template $ARGOCD_APP_NAME -n $ARGOCD_APP_NAMESPACE . |
               argocd-vault-plugin generate -
-        lockRepo: false
-      argocd-vault-plugin:
-        allowConcurrency: true
-        discover:
-          find:
-            command:
-              - sh
-              - "-c"
-              - "find . -name '*.yaml' | xargs -I {} grep \"<path\\|avp\\.kubernetes\\.io\" {} | grep ."
-        generate:
-          command:
-            - argocd-vault-plugin
-            - generate
-            - "."
         lockRepo: false
 
 # ref: https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/
@@ -153,35 +118,32 @@ server:
           - "${feature}.${env}.${dns_name}"
     # http: false
 
-# ref: https://github.com/argoproj-labs/argocd-vault-plugin/blob/main/manifests/cmp-sidecar/argocd-repo-server.yaml
 repoServer:
   serviceAccount:
-    name: ${feature}-repo-server
     annotations:
       iam.gke.io/gcp-service-account: "${service_account_annotation}"
     # Not strictly necessary, but required for passing AVP configuration from a secret and for using Kubernetes auth to Hashicorp Vault
     automountServiceAccountToken: true
+  volumeMounts:
+    - name: custom-tools
+      mountPath: /usr/local/bin/argocd-vault-plugin
+      subPath: argocd-vault-plugin
   volumes:
     - configMap:
         name: argocd-cmp-cm
-      name: argocd-cmp-cm
-    - name: cmp-tmp
-      emptyDir: {}
+      name: cmp-plugin
     - name: custom-tools
       emptyDir: {}
-  envFrom:
-    - secretRef:
-        name: argocd-secret
   initContainers:
     - name: download-tools
       image: registry.access.redhat.com/ubi8
       env:
         - name: AVP_VERSION
-          value: ${extra_vars.AVP_VERSION}
+          value: 1.16.1
       command: [sh, -c]
       args:
         - >-
-          curl -L https://github.com/argoproj-labs/argocd-vault-plugin/releases/download/v${extra_vars.AVP_VERSION}/argocd-vault-plugin_${extra_vars.AVP_VERSION}_linux_amd64 -o argocd-vault-plugin &&
+          curl -L https://github.com/argoproj-labs/argocd-vault-plugin/releases/download/v$(AVP_VERSION)/argocd-vault-plugin_$(AVP_VERSION)_linux_amd64 -o argocd-vault-plugin &&
           chmod +x argocd-vault-plugin &&
           mv argocd-vault-plugin /custom-tools/
 
@@ -189,7 +151,6 @@ repoServer:
         - mountPath: /custom-tools
           name: custom-tools
   extraContainers:
-      # argocd-vault-plugin with Helm
     - name: avp-helm
       command: [/var/run/argocd/argocd-cmp-server]
       image: quay.io/argoproj/argocd:v2.7.9
@@ -202,62 +163,12 @@ repoServer:
         - mountPath: /home/argocd/cmp-server/plugins
           name: plugins
         - mountPath: /tmp
-          name: cmp-tmp
+          name: tmp
 
         # Register plugins into sidecar
         - mountPath: /home/argocd/cmp-server/config/plugin.yaml
-          subPath: argocd-vault-plugin-helm.yaml
-          name: argocd-cmp-cm
-
-        # Important: Mount tools into $PATH
-        - name: custom-tools
-          subPath: argocd-vault-plugin
-          mountPath: /usr/local/bin/argocd-vault-plugin
-
-      # argocd-vault-plugin with Kustomize
-    - name: avp-kustomize
-      command: [/var/run/argocd/argocd-cmp-server]
-      image: quay.io/argoproj/argocd:v2.7.9
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 999
-      volumeMounts:
-        - mountPath: /var/run/argocd
-          name: var-files
-        - mountPath: /home/argocd/cmp-server/plugins
-          name: plugins
-        - mountPath: /tmp
-          name: cmp-tmp
-
-        # Register plugins into sidecar
-        - mountPath: /home/argocd/cmp-server/config/plugin.yaml
-          subPath: argocd-vault-plugin-kustomize.yaml
-          name: argocd-cmp-cm
-
-        # Important: Mount tools into $PATH
-        - name: custom-tools
-          subPath: argocd-vault-plugin
-          mountPath: /usr/local/bin/argocd-vault-plugin
-
-    # argocd-vault-plugin with plain YAML
-    - name: avp
-      command: [/var/run/argocd/argocd-cmp-server]
-      image: quay.io/argoproj/argocd:v2.7.9
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 999
-      volumeMounts:
-        - mountPath: /var/run/argocd
-          name: var-files
-        - mountPath: /home/argocd/cmp-server/plugins
-          name: plugins
-        - mountPath: /tmp
-          name: cmp-tmp
-
-        # Register plugins into sidecar
-        - mountPath: /home/argocd/cmp-server/config/plugin.yaml
-          subPath: argocd-vault-plugin.yaml
-          name: argocd-cmp-cm
+          subPath: avp-helm.yaml
+          name: cmp-plugin
 
         # Important: Mount tools into $PATH
         - name: custom-tools

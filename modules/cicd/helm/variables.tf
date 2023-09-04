@@ -32,9 +32,9 @@ variable "use_workload_identity" {
 }
 
 variable "google_service_account_role" {
-  type        = string
+  type        = list(string)
   description = "GCP service account role"
-  default     = null
+  default     = []
 }
 
 # helm arguments
