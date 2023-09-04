@@ -23,6 +23,9 @@ provider "kubernetes" {
   # token                  = data.google_client_config.current.access_token
   # cluster_ca_certificate = base64decode(data.terraform_remote_state.cluster.outputs.cluster_ca_certificate)
   config_path = "~/.kube/config"
+  experiments {
+    manifest_resource = true
+  }
 }
 
 # create helm provider

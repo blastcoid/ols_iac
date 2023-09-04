@@ -1,27 +1,12 @@
-# Naming Standard
+# GCP Settings
 variable "region" {
   type        = string
   description = "The Google Cloud region where resources will be created."
 }
 
-variable "unit" {
-  type        = string
-  description = "Business unit code representing the organizational entity within the company."
-}
-
 variable "env" {
   type        = string
   description = "Environment stage (e.g., dev, prod) where the infrastructure will be deployed."
-}
-
-variable "code" {
-  type        = string
-  description = "Service domain code representing the specific service or application."
-}
-
-variable "feature" {
-  type        = list(string)
-  description = "Features name of the service or application."
 }
 
 # Service Account Arguments
@@ -36,6 +21,11 @@ variable "service_account_role" {
 }
 
 # Google Cloud Compute Arguments
+variable "instance_name" {
+  type        = string
+  description = "The name of the virtual machine instances."
+}
+
 variable "zone" {
   type        = string
   description = "The Google Cloud zone within the region for resource placement."
@@ -44,6 +34,11 @@ variable "zone" {
 variable "linux_user" {
   type        = string
   description = "linux user for accessing the virtual machine instances."
+}
+
+variable "ssh_key" {
+  type        = string
+  description = "The SSH public key to be used for accessing the virtual machine instances."
 }
 
 variable "machine_type" {

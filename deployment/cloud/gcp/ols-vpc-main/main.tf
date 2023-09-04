@@ -7,7 +7,7 @@ terraform {
 }
 
 # Deploy the VPC using the VPC module
-module "vpc" {
+module "vpc_main" {
   source                  = "../../../../modules/gcp/network/vpc"
   region                  = "asia-southeast2"
   project_id              = "${var.unit}-platform-${var.env}"

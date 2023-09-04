@@ -1,1 +1,1 @@
-google-cloud-kms
+google-cloud-kms==2.19.1

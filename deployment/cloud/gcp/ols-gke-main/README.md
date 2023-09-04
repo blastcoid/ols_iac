@@ -55,7 +55,7 @@ data "terraform_remote_state" "vpc_ols_network" {
 
   config = {
     bucket = "<GCS Bucket Name>"
-    prefix = "vpc/ols-dev-vpc-network"
+    prefix = "gcp/network/ols-dev-network-vpc-main"
   }
 }
 

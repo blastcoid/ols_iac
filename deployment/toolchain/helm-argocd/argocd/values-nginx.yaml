@@ -1,0 +1,96 @@
+global:
+  nodeSelector:
+    iam.gke.io/gke-metadata-server-enabled: "true"
+
+configs:
+  secret:
+    extra:
+      dex.github.clientSecret: ${extra_vars.github_client_secret}
+  cm:
+    url: "https://${feature}.${dns_name}"
+    dex.config: |
+      connectors:
+        - type: github
+          id: github
+          name: GitHub
+          config:
+            clientID: ${extra_vars.github_client_id}
+            clientSecret: $argocd-secret:dex.github.clientSecret
+            redirectURI: 'https://${feature}.${env}.${dns_name}/api/dex/callback'
+            orgs:
+              - name: ${extra_vars.github_orgs}
+  params:
+    server.insecure: true
+  rbac:
+    policy.default: role:readonly
+    policy.csv: |
+      # default policy
+      p, role:readonly, applications, get, */*, allow
+      p, role:readonly, certificates, get, *, allow
+      p, role:readonly, clusters, get, *, allow
+      p, role:readonly, repositories, get, *, allow
+      p, role:readonly, projects, get, *, allow
+      p, role:readonly, accounts, get, *, allow
+      p, role:readonly, gpgkeys, get, *, allow
+      p, role:readonly, logs, get, */*, allow
+      # admin policy
+      p, role:devops-role, applications, create, */*, allow
+      p, role:devops-role, applications, update, */*, allow
+      p, role:devops-role, applications, delete, */*, allow
+      p, role:devops-role, applications, sync, */*, allow
+      p, role:devops-role, applications, override, */*, allow
+      p, role:devops-role, applications, action/*, */*, allow
+      p, role:devops-role, applicationsets, get, */*, allow
+      p, role:devops-role, applicationsets, create, */*, allow
+      p, role:devops-role, applicationsets, update, */*, allow
+      p, role:devops-role, applicationsets, delete, */*, allow
+      p, role:devops-role, certificates, create, *, allow
+      p, role:devops-role, certificates, update, *, allow
+      p, role:devops-role, certificates, delete, *, allow
+      p, role:devops-role, clusters, create, *, allow
+      p, role:devops-role, clusters, update, *, allow
+      p, role:devops-role, clusters, delete, *, allow
+      p, role:devops-role, repositories, create, *, allow
+      p, role:devops-role, repositories, update, *, allow
+      p, role:devops-role, repositories, delete, *, allow
+      p, role:devops-role, projects, create, *, allow
+      p, role:devops-role, projects, update, *, allow
+      p, role:devops-role, projects, delete, *, allow
+      p, role:devops-role, accounts, update, *, allow
+      p, role:devops-role, gpgkeys, create, *, allow
+      p, role:devops-role, gpgkeys, delete, *, allow
+      p, role:devops-role, exec, create, */*, allow
+      # set admin policy for devops team in github orgs
+      g, ${extra_vars.github_orgs}:devops, role:devops-role
+      g, devops, role:devops-role
+
+# ref: https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/
+controller:
+  serviceAccount:
+    annotations:
+      iam.gke.io/gcp-service-account: "${service_account_annotation}"
+server:
+  serviceAccount:
+    annotations:
+      iam.gke.io/gcp-service-account: "${service_account_annotation}"
+  service:
+    type: ClusterIP
+    servicePortHttp: 80
+    servicePortHttpName: http
+  ingress:
+    enabled: true
+    hosts:
+      - "${feature}.${env}.${dns_name}"
+    annotations:
+      # nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+      # nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+      external-dns.alpha.kubernetes.io/hostname: "${feature}.${dns_name}"
+      external-dns.alpha.kubernetes.io/ttl: "300"
+      kubernetes.io/tls-acme: "true"
+      cert-manager.io/cluster-issuer: "letsencrypt-${unit}-${env}"
+    ingressClassName: "nginx"
+    tls:
+      - secretName: "${unit}-${feature}-server-tls"
+        hosts:
+          - "${feature}.${env}.${dns_name}"
+    # http: false

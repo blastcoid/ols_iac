@@ -5,4 +5,4 @@ metadata:
   namespace: ${namespace}
 spec:
   domains:
-    - ${feature}.${dns_name}
+    - ${feature}.${env}.${dns_name}

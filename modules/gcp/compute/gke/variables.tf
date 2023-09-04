@@ -1,30 +1,20 @@
-# Naming Standard
+# GCP Settings
 variable "region" {
   type        = string
   description = "The GCP region where resources will be created."
 }
 
-variable "unit" {
-  type        = string
-  description = "The business unit code representing the organizational unit."
-}
-
 variable "env" {
   type        = string
-  description = "The environment stage (e.g., dev, prod) where the infrastructure will be deployed."
-}
-
-variable "code" {
-  type        = string
-  description = "The service domain code representing the specific service or application."
-}
-
-variable "feature" {
-  type        = string
-  description = "The specific feature or component of the AWS service being configured."
+  description = "Stage environment where the infrastructure will be deployed."
 }
 
 # GKE Arguments
+variable "cluster_name" {
+  type        = string
+  description = "The name of the GKE cluster to create."
+}
+
 variable "issue_client_certificate" {
   type        = bool
   description = "Whether to issue a client certificate for authenticating to the cluster."
@@ -104,6 +94,11 @@ variable "dns_config" {
     cluster_dns_domain = string # The domain name for the cluster.
   }))
   description = "Configuration for DNS within the cluster, including DNS scope and domain settings."
+}
+
+variable "resource_labels" {
+  type        = map(string)
+  description = "Labels to apply to the cluster's resources."
 }
 
 # GKE Node Pool Arguments

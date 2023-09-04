@@ -17,7 +17,7 @@ data "terraform_remote_state" "kms_cryptokey" {
 
 # Decrypt github secret using kms cryptokey
 data "google_kms_secret" "github_secret" {
-  crypto_key = data.terraform_remote_state.kms_cryptokey.outputs.cryptokey_id
+  crypto_key = data.terraform_remote_state.kms_cryptokey.outputs.security_cryptokey_id
   ciphertext = var.github_secret_ciphertext
 }
 
@@ -67,7 +67,7 @@ module "github_repository" {
   webhooks = {
     atlantis = {
       configuration = {
-        url          = "https://atlantis.ols.blast.co.id/events"
+        url          = "https://atlantis.dev.ols.blast.co.id/events"
         content_type = "json"
         insecure_ssl = false
         secret       = data.google_kms_secret.github_secret.plaintext
@@ -77,7 +77,7 @@ module "github_repository" {
     }
     argocd = {
       configuration = {
-        url          = "https://argocd.ols.blast.co.id/api/webhook"
+        url          = "https://argocd.dev.ols.blast.co.id/api/webhook"
         content_type = "json"
         insecure_ssl = false
         secret       = data.google_kms_secret.github_secret.plaintext

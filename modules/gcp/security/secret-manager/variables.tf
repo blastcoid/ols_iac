@@ -1,29 +1,20 @@
-#Naming Standard
+# GCP Settings
 variable "region" {
   type        = string
   description = "GCP region"
 }
-
-variable "unit" {
-  type        = string
-  description = "business unit code"
-}
-
 variable "env" {
   type        = string
   description = "stage environment where the infrastructure will be deployed"
 }
 
-variable "code" {
+# Google Secret Manager arguments
+
+variable "secret_name_prefix" {
   type        = string
-  description = "service domain code to use"
+  description = "The name of the secret manager"
 }
 
-variable "feature" {
-  type        = string
-  description = "the name of AWS services feature"
+variable "secret_data" {
+  description = "The secrets to be stored in the secret manager"
 }
-
-# gsm arguments
-
-variable "secret_data" {}

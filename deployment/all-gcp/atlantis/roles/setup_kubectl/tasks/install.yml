@@ -1,0 +1,14 @@
+- name: Set GCP project
+  command:
+    cmd: gcloud config set project {{ project_id }}
+  become: no
+  tags: install_kubectl
+
+- name: Install kubectl and google-cloud-sdk-gke-gcloud-auth-plugin
+  become: yes
+  apt:
+    name:
+      - kubectl
+      - google-cloud-sdk-gke-gcloud-auth-plugin
+    state: present
+  tags: install_kubectl

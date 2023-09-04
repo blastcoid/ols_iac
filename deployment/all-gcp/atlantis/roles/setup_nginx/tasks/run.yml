@@ -1,0 +1,15 @@
+- name: Enable Nginx site
+  become: yes
+  command: ln -s /etc/nginx/sites-available/atlantis /etc/nginx/sites-enabled/
+  tags: 
+    - run_nginx
+    - enable_nginx_site
+
+- name: Reload Nginx
+  become: yes
+  systemd:
+    name: nginx
+    state: reloaded
+  tags: 
+    - run_nginx
+    - reload_nginx

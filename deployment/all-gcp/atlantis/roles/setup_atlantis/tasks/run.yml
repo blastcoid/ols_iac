@@ -1,0 +1,31 @@
+- name: Create Atlantis systemd service
+  become: yes
+  copy:
+    content: |
+      [Unit]
+      Description=Atlantis
+      After=network-online.target
+
+      [Service]
+      Type=simple
+      User=atlantis
+      ExecStart=/usr/local/bin/atlantis server --config /etc/atlantis/config.yml --repo-config /etc/atlantis/atlantis.yaml
+      Restart=on-failure
+
+      [Install]
+      WantedBy=multi-user.target
+    dest: "/etc/systemd/system/atlantis.service"
+  tags: 
+    - run_atlantis
+    - create_atlantis_systemd_service
+
+- name: Enable and start Atlantis service
+  become: yes
+  systemd:
+    name: atlantis
+    enabled: yes
+    state: started
+  tags: 
+    - run_atlantis
+    - enable_and_start_atlantis_service
+

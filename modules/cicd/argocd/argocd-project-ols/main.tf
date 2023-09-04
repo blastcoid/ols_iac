@@ -35,7 +35,7 @@ module "helm" {
   google_service_account_role = null
   dns_name                    = trimsuffix(data.terraform_remote_state.gcloud_dns_ols.outputs.dns_name, ".")
   create_gmanaged_certificate = false
-  values_extra_vars = {
+  extra_vars = {
     github_orgs           = "greyhats13"
     github_repo           = "ol_shop"
     k8s_server            = "https://kubernetes.default.svc"

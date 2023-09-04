@@ -2,7 +2,7 @@
 terraform {
   backend "gcs" {
     bucket = "ols-dev-storage-gcs-tfstate"
-    prefix = "gcompute-engine/ols-dev-gcompute-engine-atlantis"
+    prefix = "gcp/compute/ols-dev-compute-gce-atlantis"
   }
 }
 
@@ -11,58 +11,61 @@ data "terraform_remote_state" "vpc_ols_network" {
   backend = "gcs"
 
   config = {
-    bucket = "ols-dev-storage-gcs-tfstate"
-    prefix = "vpc/ols-dev-vpc-network"
+    bucket = "${var.unit}-${var.env}-storage-gcs-tfstate"
+    prefix = "gcp/network/${var.unit}-${var.env}-network-vpc-main"
   }
 }
 
 # Terraform state data gkubernetes engine
-# data "terraform_remote_state" "gkubernetes_engine_ols" {
-#   backend = "gcs"
-
-#   config = {
-#     bucket = "ols-dev-storage-gcs-tfstate"
-#     prefix = "gkubernetes-engine/ols-dev-gkubernetes-engine-ols"
-#   }
-# }
-
-# Terraform state data gcloud dns
-data "terraform_remote_state" "gcloud_dns_ols" {
+data "terraform_remote_state" "gke_main" {
   backend = "gcs"
 
   config = {
-    bucket = "ols-dev-storage-gcs-tfstate"
-    prefix = "gcloud-dns/ols-dev-gcloud-dns-blast"
+    bucket = "${var.unit}-${var.env}-storage-gcs-tfstate"
+    prefix = "gcp/compute/${var.unit}-${var.env}-compute-gke-main"
   }
 }
 
+# Terraform state data gcloud dns
+data "terraform_remote_state" "dns_blast" {
+  backend = "gcs"
+
+  config = {
+    bucket = "${var.unit}-${var.env}-storage-gcs-tfstate"
+    prefix = "gcp/network/${var.unit}-${var.env}-network-dns-blast"
+  }
+}
+
+data "google_secret_manager_secret_version" "ssh_key" {
+  secret = "ssh-key-main"
+}
+
 data "google_secret_manager_secret_version" "github_token" {
-  secret = "github-token"
+  secret = "github-token-atlantis"
 }
 
 data "google_secret_manager_secret_version" "github_secret" {
-  secret = "github-webhook-secret"
+  secret = "github-secret"
 }
 
-# data "google_secret_manager_secret_version" "atlantis_password" {
-#   secret = "atlantis-password"
-# }
+data "google_secret_manager_secret_version" "atlantis_password" {
+  secret = "atlantis-password"
+}
 
 # Get current project id
 data "google_project" "current" {}
 
 # create gce from modules gce
 module "gcompute-engine" {
-  source               = "../../modules/compute/gcompute-engine"
-  region               = "asia-southeast2"
-  unit                 = "ols"
-  env                  = "dev"
-  code                 = "gce"
-  feature              = ["atlantis"]
-  zone                 = "asia-southeast2-a"
+  source               = "../../../../modules/gcp/compute/gce"
+  region               = var.region
+  env                  = var.env
+  zone                 = "${var.region}-a"
   project_id           = data.google_project.current.project_id
+  instance_name        = "${var.unit}-${var.env}-${var.code}-${var.feature}"
   service_account_role = "roles/owner"
-  linux_user           = "atlantis"
+  linux_user           = var.feature
+  ssh_key              = data.google_secret_manager_secret_version.ssh_key.secret_data
   machine_type         = "e2-medium"
   disk_size            = 20
   disk_type            = "pd-standard"
@@ -86,12 +89,12 @@ module "gcompute-engine" {
       network_tier           = "PREMIUM"
     }
   }
-  tags              = ["atlantis"]
+  tags              = [var.feature]
   image             = "debian-cloud/debian-11"
   create_dns_record = true
   dns_config = {
-    dns_name      = data.terraform_remote_state.gcloud_dns_ols.outputs.dns_name
-    dns_zone_name = data.terraform_remote_state.gcloud_dns_ols.outputs.dns_zone_name
+    dns_name      = data.terraform_remote_state.dns_blast.outputs.dns_name
+    dns_zone_name = data.terraform_remote_state.dns_blast.outputs.dns_zone_name
     record_type   = "A"
     ttl           = 300
   }
@@ -99,12 +102,15 @@ module "gcompute-engine" {
   ansible_tags      = ["configure_kubectl"]
   ansible_skip_tags = []
   ansible_vars = {
-    project_id            = data.google_project.current.project_id
-    cluster_name          = "ols-dev-gkubernetes-engine-ols"
-    region                = "asia-southeast2" # asia-southeast2-a for zonal cluster
-    github_token          = data.google_secret_manager_secret_version.github_token.secret_data
-    github_secret = data.google_secret_manager_secret_version.github_secret.secret_data
-    atlantis_password     = "Makanan13"
+    # ansible_user                 = var.feature
+    # ansible_ssh_private_key_file = "${var.feature}/id_rsa.pem"
+    # ansible_python_interpreter   = "/usr/bin/python3"
+    project_id                   = data.google_project.current.project_id
+    cluster_name                 = data.terraform_remote_state.gke_main.outputs.cluster_name
+    region                       = "${var.region}-a"
+    github_token                 = data.google_secret_manager_secret_version.github_token.secret_data
+    github_secret                = data.google_secret_manager_secret_version.github_secret.secret_data
+    atlantis_password            = data.google_secret_manager_secret_version.atlantis_password.secret_data
   }
   firewall_rules = {
     "ssh" = {
@@ -126,5 +132,5 @@ module "gcompute-engine" {
   }
   priority      = 1000
   source_ranges = ["0.0.0.0/0"]
-  target_tags   = ["atlantis"]
+  target_tags   = [var.feature]
 }

@@ -88,6 +88,7 @@ variable "auto_init" {
 variable "gitignore_template" {
   type        = string
   description = "Use the name of the template without the extension. For example, 'Haskell'."
+  default     = null
 }
 
 variable "license_template" {
@@ -263,6 +264,38 @@ variable "webhooks" {
 }
 
 variable "teams_permission" {
-  type = map(string)
+  type        = map(string)
   description = "List of teams permission to be added to the repository"
+}
+
+# Github deploy key arguments
+
+variable "ssh_key" {
+  type        = string
+  description = "The SSH key to add to the repository."
+  default     = null
+}
+
+variable "public_key" {
+  type        = string
+  description = "The public key to add to the repository."
+  default     = null
+}
+
+variable "is_deploy_key_read_only" {
+  type        = bool
+  description = "Set to true to create a read-only deploy key."
+  default     = true
+}
+
+# Kubernetes arguments
+variable "argocd_namespace" {
+  type        = string
+  description = "ArgoCD namespace"
+  default     = null
+}
+
+variable "github_action_secrets" {
+  description = "List of secrets to be added to the repository github actions"
+  default = {}
 }

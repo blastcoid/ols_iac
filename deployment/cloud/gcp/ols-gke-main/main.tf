@@ -2,57 +2,40 @@
 terraform {
   backend "gcs" {
     bucket = "ols-dev-storage-gcs-tfstate"
-    prefix = "gkubernetes-engine/ols-dev-gkubernetes-engine-ols"
+    prefix = "gcp/compute/ols-dev-compute-gke-main"
   }
 }
 
 data "google_service_account" "gcompute_engine_default_service_account" {
-  account_id = "104314449368242098130"
+  account_id = "102052325554983869202"
 }
 
-data "terraform_remote_state" "vpc_ols_network" {
+data "terraform_remote_state" "vpc_main" {
   backend = "gcs"
 
   config = {
     bucket = "ols-dev-storage-gcs-tfstate"
-    prefix = "vpc/ols-dev-vpc-network"
+    prefix = "gcp/network/ols-dev-network-vpc-main"
   }
 }
 
 # create gke from modules gke
-module "gkubernetes_engine" {
-  # Naming standard
-  source  = "../../modules/compute/gkubernetes-engine"
-  region  = "asia-southeast2"
-  unit    = "ols"
-  env     = "dev"
-  code    = "gkubernetes-engine"
-  feature = "cluster"
-  # cluster arguments
+module "gke_main" {
+  source                        = "../../../../modules/gcp/compute/gke"
+  region                        = var.region
+  env                           = var.env
+  cluster_name                  = "${var.unit}-${var.env}-${var.code}-${var.feature}"
   issue_client_certificate      = false
-  vpc_self_link                 = data.terraform_remote_state.vpc_ols_network.outputs.vpc_self_link
-  subnet_self_link              = data.terraform_remote_state.vpc_ols_network.outputs.subnet_self_link
-  pods_secondary_range_name     = data.terraform_remote_state.vpc_ols_network.outputs.pods_secondary_range_name
-  services_secondary_range_name = data.terraform_remote_state.vpc_ols_network.outputs.services_secondary_range_name
+  vpc_self_link                 = data.terraform_remote_state.vpc_main.outputs.network_vpc_self_link
+  subnet_self_link              = data.terraform_remote_state.vpc_main.outputs.network_subnet_self_link
+  pods_secondary_range_name     = data.terraform_remote_state.vpc_main.outputs.network_pods_secondary_range_name
+  services_secondary_range_name = data.terraform_remote_state.vpc_main.outputs.network_services_secondary_range_name
   enable_autopilot              = true
-  cluster_autoscaling = {
-    enabled = false
-    resource_limits = {
-      cpu = {
-        minimum = 2
-        maximum = 8
-      }
-      memory = {
-        minimum = 4
-        maximum = 32
-      }
-    }
-  }
   binary_authorization = {
     evaluation_mode = "PROJECT_SINGLETON_POLICY_ENFORCE" # set to null to disable
   }
   network_policy = {
-    enabled  = true
+    enabled  = false
     provider = "CALICO"
   }
   datapath_provider = "ADVANCED_DATAPATH"
@@ -66,21 +49,9 @@ module "gkubernetes_engine" {
   }
 
   private_cluster_config = {
-    dev = {
-      enable_private_endpoint = false
-      enable_private_nodes    = true
-      master_ipv4_cidr_block  = "192.168.0.0/28"
-    }
-    stg = {
-      enable_private_endpoint = true
-      enable_private_nodes    = true
-      master_ipv4_cidr_block  = "192.168.1.0/28"
-    }
-    prd = {
-      enable_private_endpoint = true
-      enable_private_nodes    = true
-      master_ipv4_cidr_block  = "192.168.2.0/28"
-    }
+    enable_private_endpoint = false
+    enable_private_nodes    = true
+    master_ipv4_cidr_block  = "192.168.0.0/28"
   }
 
   dns_config = {
@@ -100,7 +71,14 @@ module "gkubernetes_engine" {
       cluster_dns_domain = "blast.local"
     }
   }
-  #node pool only work when
+  resource_labels = {
+    name    = "${var.unit}-${var.env}-${var.code}-${var.feature}"
+    env     = var.env
+    unit    = var.unit
+    code    = var.code
+    feature = var.feature
+  }
+  # node pool only work when enable_autopilot = false
   node_config = {
     ondemand = {
       is_spot    = false
@@ -119,6 +97,9 @@ module "gkubernetes_engine" {
         enable_secure_boot          = true
         enable_integrity_monitoring = false
       }
+      workload_metadata_config = {
+        mode = "GKE_METADATA"
+      }
     },
     spot = {
       is_spot    = true
@@ -136,6 +117,9 @@ module "gkubernetes_engine" {
       shielded_instance_config = {
         enable_secure_boot          = true
         enable_integrity_monitoring = false
+      }
+      workload_metadata_config = {
+        mode = "GKE_METADATA"
       }
     }
   }

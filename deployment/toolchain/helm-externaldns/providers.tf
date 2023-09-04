@@ -8,11 +8,11 @@
 #   }
 # }
 
-# create gcp provider
 provider "google" {
-  project = "ols-platform-dev"
-  region  = "asia-southeast2"
+  project     = "${var.unit}-platform-${var.env}"
+  region      = var.region
 }
+
 
 # create provider for helm and get credential from gke cluster
 # create kubernetes provider

@@ -1,12 +1,7 @@
-#Naming Standard
+# GCP Settings
 variable "region" {
   type        = string
   description = "GCP region"
-}
-
-variable "unit" {
-  type        = string
-  description = "business unit code"
 }
 
 variable "env" {
@@ -14,25 +9,23 @@ variable "env" {
   description = "stage environment where the infrastructure will be deployed"
 }
 
-variable "code" {
+variable "project_id" {
   type        = string
-  description = "service domain code to use"
-}
-
-variable "feature" {
-  type        = string
-  description = "the name of AWS services feature"
+  description = "GCP project id"
 }
 
 # service account arguments
-
-variable "create_gservice_account" {
+variable "service_account_name" {
+  type        = string
+  description = "service account name"
+}
+variable "create_service_account" {
   type        = bool
   description = "create google service account"
   default     = false
 }
 
-variable "use_gworkload_identity" {
+variable "use_workload_identity" {
   type        = bool
   description = "use google workload identity"
   default     = false
@@ -80,7 +73,7 @@ variable "dns_name" {
   default     = null
 }
 
-variable "create_gmanaged_certificate" {
+variable "create_managed_certificate" {
   type        = bool
   description = "create managed certificate"
   default     = false
@@ -110,8 +103,14 @@ variable "after_helm_manifest" {
   default     = null
 }
 
-variable "values_extra_vars" {
-  type        = map(string)
+variable "after_crd_installed" {
+  type        = string
+  description = "after crd installed"
+  default     = null
+}
+
+variable "extra_vars" {
+  type        = map(any)
   description = "helm values extra vars"
   default     = {}
   sensitive   = true

@@ -1,0 +1,5 @@
+- name: Get GKE cluster credentials to generate kubeconfig
+  command:
+    cmd: gcloud container clusters get-credentials {{ cluster_name }} --region {{ region }} --internal-ip
+  become: no
+  tags: configure_kubectl

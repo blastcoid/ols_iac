@@ -1,0 +1,24 @@
+- name: Create htpasswd file for authentication
+  become: yes
+  command:
+    cmd: htpasswd -b -c /etc/nginx/.htpasswd atlantis {{ atlantis_password }}
+  changed_when: false
+  tags:
+    - configure_nginx
+    - create_htpasswd
+
+- name: Generate Let's Encrypt certificate using Nginx
+  become: yes
+  command: certbot --nginx -d atlantis.dev.ols.blast.co.id --non-interactive --agree-tos -m idanfreak@gmail.com
+  tags:
+    - configure_nginx
+    - generate_letsencrypt_certificate
+
+- name: Copy Nginx Configuration for Atlantis
+  become: yes
+  copy:
+    src: nginx-atlantis-ssl.conf
+    dest: /etc/nginx/sites-available/atlantis
+  tags:
+    - configure_nginx
+    - copy_nginx_configuration

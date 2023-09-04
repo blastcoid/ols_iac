@@ -1,0 +1,26 @@
+- name: Install Nginx
+  become: yes
+  apt:
+    name: nginx
+    state: present
+  tags: 
+    - install_nginx
+    - install_nginx_apt
+
+- name: Install apache2-utils for htpasswd
+  become: yes
+  apt:
+    name: apache2-utils
+    state: present
+  tags: 
+    - install_nginx
+    - install_apache2-utils
+
+- name: Install Certbot Nginx plugin
+  become: yes
+  apt:
+    name: python3-certbot-nginx
+    state: present
+  tags: 
+    - install_nginx
+    - install_certbot_nginx_plugin

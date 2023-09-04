@@ -2,37 +2,33 @@
 terraform {
   backend "gcs" {
     bucket = "ols-dev-storage-gcs-tfstate"
-    prefix = "helm/ols-dev-helm-external-dns"
+    prefix = "toolchain/helm/ols-dev-helm-external-dns"
   }
 }
 
-data "google_project" "current" {}
-
 # create a GKE cluster with 2 node pools
-data "terraform_remote_state" "gcloud_dns_ols" {
+data "terraform_remote_state" "dns_blast" {
   backend = "gcs"
 
   config = {
     bucket = "ols-dev-storage-gcs-tfstate"
-    prefix = "gcloud-dns/ols-dev-gcloud-dns-blast"
+    prefix = "gcp/network/ols-dev-network-dns-blast"
   }
 }
 
-module "externaldns" {
-  source                      = "../../modules/compute/helm"
-  region                      = "asia-southeast2"
-  unit                        = "ols"
+module "external-dns" {
+  source                      = "../../../modules/cicd/helm"
+  region                      = var.region
   env                         = "dev"
-  code                        = "helm"
-  feature                     = "external-dns"
   repository                  = "https://charts.bitnami.com/bitnami"
   chart                       = "external-dns"
-  create_gservice_account      = true
-  use_gworkload_identity       = true
-  project_id                  = data.google_project.current.project_id
+  service_account_name        = "${var.unit}-${var.env}-${var.code}-${var.feature}"
+  create_service_account      = true
+  use_workload_identity       = true
+  project_id                  = "${var.unit}-platform-${var.env}"
   google_service_account_role = "roles/dns.admin"
-  create_gmanaged_certificate = false
-  values                     = ["${file("values.yaml")}"]
+  create_managed_certificate = false
+  values                      = ["${file("external-dns/values.yaml")}"]
   helm_sets = [
     {
       name  = "provider"
@@ -48,7 +44,7 @@ module "externaldns" {
     },
     {
       name  = "zoneVisibility"
-      value = data.terraform_remote_state.gcloud_dns_ols.outputs.dns_zone_visibility
+      value = data.terraform_remote_state.dns_blast.outputs.dns_zone_visibility
     }
   ]
   namespace        = "ingress"

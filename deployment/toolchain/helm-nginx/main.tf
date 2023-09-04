@@ -2,38 +2,31 @@
 terraform {
   backend "gcs" {
     bucket = "ols-dev-storage-gcs-tfstate"
-    prefix = "helm/ols-dev-helm-nginx"
+    prefix = "toolchain/helm/ols-dev-helm-nginx"
   }
 }
 
-data "terraform_remote_state" "gcloud_dns_ols" {
+data "terraform_remote_state" "dns_blast" {
   backend = "gcs"
 
   config = {
     bucket = "ols-dev-storage-gcs-tfstate"
-    prefix = "gcloud-dns/ols-dev-gcloud-dns-blast"
+    prefix = "gcp/network/ols-dev-network-dns-blast"
   }
 }
 
 
 data "google_project" "current" {}
 
-module "helm" {
-  source                      = "../../modules/compute/helm"
-  region                      = "asia-southeast2"
-  unit                        = "ols"
-  env                         = "dev"
-  code                        = "helm"
-  feature                     = "nginx"
-  repository                  = "https://kubernetes.github.io/ingress-nginx"
-  chart                       = "ingress-nginx"
-  values                      = ["${file("values.yaml")}"]
-  namespace                   = "ingress"
-  create_namespace            = false
-  create_gservice_account     = false
-  use_gworkload_identity      = false
-  project_id                  = data.google_project.current.project_id
-  google_service_account_role = null
-  dns_name                    = trimsuffix(data.terraform_remote_state.gcloud_dns_ols.outputs.dns_name, ".")
-  create_gmanaged_certificate  = false
+module "helm_nginx" {
+  source               = "../../../modules/cicd/helm"
+  region               = var.region
+  env                  = var.env
+  repository           = "https://kubernetes.github.io/ingress-nginx"
+  chart                = "ingress-nginx"
+  service_account_name = "${var.unit}-${var.env}-${var.code}-${var.feature}"
+  values               = ["${file("nginx/values.yaml")}"]
+  namespace            = "ingress"
+  project_id           = data.google_project.current.project_id
+  dns_name             = trimsuffix(data.terraform_remote_state.dns_blast.outputs.dns_name, ".")
 }

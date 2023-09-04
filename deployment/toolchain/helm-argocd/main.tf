@@ -2,16 +2,16 @@
 terraform {
   backend "gcs" {
     bucket = "ols-dev-storage-gcs-tfstate"
-    prefix = "helm/ols-dev-helm-argo-cd"
+    prefix = "toolchain/helm/ols-dev-helm-argocd"
   }
 }
 
-data "terraform_remote_state" "gcloud_dns_ols" {
+data "terraform_remote_state" "dns_blast" {
   backend = "gcs"
 
   config = {
     bucket = "ols-dev-storage-gcs-tfstate"
-    prefix = "gcloud-dns/ols-dev-gcloud-dns-blast"
+    prefix = "gcp/network/ols-dev-network-dns-blast"
   }
 }
 
@@ -20,32 +20,27 @@ data "google_secret_manager_secret_version" "github_oauth_client_secret_argocd" 
 }
 
 data "google_secret_manager_secret_version" "github_secret" {
-  secret = "github-webhook-secret"
+  secret = "github-secret"
 }
 
-data "google_project" "current" {}
-
-module "helm" {
-  source                      = "../../modules/compute/helm"
-  region                      = "asia-southeast2"
-  unit                        = "ols"
-  env                         = "dev"
-  code                        = "helm"
-  feature                     = "argocd"
+module "helm_argocd" {
+  source                      = "../../../modules/cicd/helm"
+  region                      = var.region
+  env                         = var.env
   repository                  = "https://argoproj.github.io/argo-helm"
   chart                       = "argo-cd"
-  values                      = ["${file("values.yaml")}"]
+  service_account_name        = "${var.unit}-${var.env}-${var.code}-${var.feature}"
+  values                      = ["${file("argocd/values.yaml")}"]
   namespace                   = "cd"
   create_namespace            = true
-  create_gservice_account     = true
-  use_gworkload_identity      = true
-  project_id                  = data.google_project.current.project_id
+  create_service_account      = true
+  use_workload_identity       = true
+  project_id                  = "${var.unit}-platform-${var.env}"
   google_service_account_role = "roles/container.admin"
-  dns_name                    = trimsuffix(data.terraform_remote_state.gcloud_dns_ols.outputs.dns_name, ".")
-  create_gmanaged_certificate = false
-  values_extra_vars = {
-    github_orgs           = "blastcoid"
-    github_client_id      = "9781757e794562ceb7e1"
+  dns_name                    = trimsuffix(data.terraform_remote_state.dns_blast.outputs.dns_name, ".")
+  extra_vars = {
+    github_orgs      = "blastcoid"
+    github_client_id = "9781757e794562ceb7e1"
   }
   helm_sets_sensitive = [
     {

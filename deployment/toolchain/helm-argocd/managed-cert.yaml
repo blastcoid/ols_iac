@@ -1,8 +1,0 @@
-apiVersion: networking.gke.io/v1
-kind: ManagedCertificate
-metadata:
-  name: atlantis-cert
-  namespace: cd
-spec:
-  domains:
-    - argocd.ols.blast.co.id

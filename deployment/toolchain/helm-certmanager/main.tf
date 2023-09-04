@@ -2,29 +2,28 @@
 terraform {
   backend "gcs" {
     bucket = "ols-dev-storage-gcs-tfstate"
-    prefix = "helm/ols-dev-helm-cert-manager"
+    prefix = "toolchain/helm/ols-dev-helm-cert-manager"
   }
 }
 
-data "terraform_remote_state" "gcloud_dns_ols" {
+# create a GKE cluster with 2 node pools
+data "terraform_remote_state" "dns_blast" {
   backend = "gcs"
 
   config = {
     bucket = "ols-dev-storage-gcs-tfstate"
-    prefix = "gcloud-dns/ols-dev-gcloud-dns-blast"
+    prefix = "gcp/network/ols-dev-network-dns-blast"
   }
 }
-
-module "helm" {
-  source                      = "../../modules/compute/helm"
-  region                      = "asia-southeast2"
-  unit                        = "ols"
-  env                         = "dev"
-  code                        = "helm"
-  feature                     = "cert-manager"
-  repository                  = "https://charts.jetstack.io"
-  chart                       = "cert-manager"
-  values                      = ["${file("values.yaml")}"]
-  namespace                   = "ingress"
-  after_helm_manifest         = "cluster-issuer.yaml"
+module "helm_certmanager" {
+  source               = "../../../modules/cicd/helm"
+  region               = var.region
+  env                  = var.env
+  repository           = "https://charts.jetstack.io"
+  chart                = "cert-manager"
+  service_account_name = "${var.unit}-${var.env}-${var.code}-${var.feature}"
+  project_id           = "${var.unit}-platform-${var.env}"
+  values               = ["${file("cert_manager/values.yaml")}"]
+  namespace            = "ingress"
+  after_crd_installed  = "cluster-issuer.yaml"
 }

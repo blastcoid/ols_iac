@@ -1,11 +1,11 @@
-output "gcm_id" {
-  value = google_compute_managed_ssl_certificate.gcm.id
+output "certificate_id" {
+  value = google_compute_managed_ssl_certificate.certificate.id
 }
 
-output "gcm_name" {
-  value = google_compute_managed_ssl_certificate.gcm.name
+output "certificate_name" {
+  value = google_compute_managed_ssl_certificate.certificate.name
 }
 
-output "gcm_certificate_id" {
-  value = google_compute_managed_ssl_certificate.gcm.certificate_id
+output "certificate_certificate_id" {
+  value = google_compute_managed_ssl_certificate.certificate.certificate_id
 }

@@ -1,0 +1,23 @@
+- hosts: all
+  roles:
+    - role: setup_ansible
+      tags: 
+        - setup_ansible
+        - initialization
+    - role: setup_terraform
+      tags: 
+        - setup_terraform
+        - initialization
+    - role: setup_atlantis
+      tags: 
+        - setup_atlantis
+        - initialization
+    - role: setup_nginx
+      tags: 
+        - setup_nginx
+        - initialization
+    - role: setup_kubectl
+      tags: 
+        - setup_kubectl
+        - initialization
+        

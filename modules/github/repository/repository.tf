@@ -140,7 +140,7 @@ resource "github_branch_protection_v3" "branch_protectionv3" {
     }
   }
   dynamic "restrictions" {
-    for_each = var.restrictions != null? [var.restrictions] : []
+    for_each = var.restrictions != null ? [var.restrictions] : []
     content {
       users = restrictions.value.users
       teams = restrictions.value.teams
@@ -173,4 +173,43 @@ resource "github_team_repository" "team_repo" {
   team_id    = each.key
   repository = github_repository.repository[0].name
   permission = each.value
+}
+
+resource "github_repository_deploy_key" "example_repository_deploy_key" {
+  count      = var.public_key != null ? 1 : 0
+  title      = "${github_repository.repository[count.index].name}-public-key"
+  repository = github_repository.repository[count.index].name
+  key        = var.public_key
+  read_only  = var.is_deploy_key_read_only
+}
+
+resource "kubernetes_secret_v1" "argocd" {
+  count = var.argocd_namespace != null ? 1 : 0
+  metadata {
+    name      = replace(github_repository.repository[count.index].name, "_", "-")
+    namespace = var.argocd_namespace
+    labels = {
+      "argocd.argoproj.io/secret-type" = "repository"
+    }
+  }
+
+  data = {
+    type          = "git"
+    url           = github_repository.repository[count.index].ssh_clone_url
+    sshPrivateKey = var.ssh_key
+  }
+}
+
+resource "github_repository_environment" "environment" {
+  count       = length(var.github_action_secrets) > 0 ? 1 : 0
+  environment = "${github_repository.repository[count.index].name}_${var.env}"
+  repository  = github_repository.repository[count.index].name
+}
+
+resource "github_actions_environment_secret" "test_secret" {
+  for_each        = var.github_action_secrets
+  repository      = github_repository.repository[0].name
+  environment     = github_repository_environment.environment[0].environment
+  secret_name     = each.key
+  plaintext_value = try(each.value.plaintext, each.value)
 }

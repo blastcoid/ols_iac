@@ -4,11 +4,6 @@ variable "region" {
   description = "The GCP region where resources will be created."
 }
 
-variable "project_id" {
-  type        = string
-  description = "The GCP project ID where resources will be created."
-}
-
 variable "env" {
   type        = string
   description = "Stage environment where the infrastructure will be deployed."
