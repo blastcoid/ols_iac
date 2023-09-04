@@ -122,7 +122,7 @@ module "argocd_app" {
   repository           = "https://argoproj.github.io/argo-helm"
   chart                = "argocd-apps"
   service_account_name = "${var.unit}-${var.env}-${var.code}-${var.feature}"
-  values               = ["${file("genai/values.yaml")}"]
+  values               = ["${file("genai2/values.yaml")}"]
   namespace            = "cd"
   project_id           = "${var.unit}-platform-${var.env}"
   dns_name             = "dev.ols.blast.co.id" #trimsuffix(data.terraform_remote_state.dns_blast.outputs.dns_name, ".")
