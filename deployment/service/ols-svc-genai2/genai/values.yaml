@@ -1,0 +1,40 @@
+applications:
+- name: ${unit}-${code}-${feature}
+  namespace: ${extra_vars.argocd_namespace}
+  additionalLabels: {}
+  additionalAnnotations: {}
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+  project: ${extra_vars.project}
+  source:
+    repoURL: ${extra_vars.source_repoURL}
+    targetRevision: ${extra_vars.source_targetRevision}
+    path: ${extra_vars.source_path}
+    directory:
+      recurse: false
+  # ArgoCD v2.6 or later
+  # sources:
+  #  - chart: elasticsearch
+  #    repoURL: https://helm.elastic.co
+  #    targetRevision: 8.5.1
+  #  - repoURL: https://github.com/argoproj/argocd-example-apps.git
+  #    path: guestbook
+  #    targetRevision: HEAD
+  destination:
+    server: ${extra_vars.destination_server}
+    namespace: ${extra_vars.destination_namespace}
+  syncPolicy:
+    automated:
+      prune: ${extra_vars.syncPolicy_automated_prune}
+      selfHeal: ${extra_vars.syncPolicy_automated_selfHeal}
+    syncOptions:
+    - CreateNamespace=${extra_vars.syncPolicy_syncOptions_CreateNamespace}
+  revisionHistoryLimit: null
+  ignoreDifferences:
+  - group: apps
+    kind: Deployment
+    jsonPointers:
+    - /spec/replicas
+  # info:
+  # - name: url
+  #   value: https://argoproj.github.io/
