@@ -13,10 +13,6 @@ applications:
     plugin:
       name: argocd-vault-plugin-helm
       env:
-        - name: HELM_VALUES
-          value: |
-            appSecret:
-              OPENAI_API_KEY: <path:projects/687148684055/secrets/openai-api-key#openai-api-key>
         - name: AVP_TYPE
           value: gcpsecretmanager
     directory:
