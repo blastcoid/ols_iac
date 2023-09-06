@@ -1,23 +1,6 @@
 # This file is maintained automatically by "terraform init".
 # Manual edits may be lost in future updates.
 
-provider "registry.terraform.io/alon-dotan-starkware/kubectl" {
-  version     = "1.11.2"
-  constraints = "1.11.2"
-  hashes = [
-    "h1:INdACoeJGu45qWt8KcXVT04VMa/GrOYq/tIkGjKfzl8=",
-    "zh:1d576cb8f3012325b45216b0a3577f99181e63bc821fbec2cb3ae60d96347c04",
-    "zh:411144481cffa1db5bfff55cc47c267bcfe299baf649b405891deafd6fb1b43f",
-    "zh:5545b2ca2ba96d8161df4a53eb151e38fc6040b4c9400109bd8a740dcf53ed23",
-    "zh:5db6556fc145d49d2c7f35272dad31c91e00b870a99a23b6a32a76f098e0c36f",
-    "zh:731dccaa7dcb2f32b20896b43da904c144f653027e02f750b823172cf428f951",
-    "zh:89a74cf03ed2b44e33d2804ca9c33c0bb765ce1da17d14d43e97d0380d5f25f8",
-    "zh:a1b7ff674e901a6badd1506ad88f9daa2c8f1d4126a104b5f45b4a23f85fff8e",
-    "zh:b40c07a838f0bda87e5762f8fe00dffca1cb17472e25bd9208d06671c78c16b1",
-    "zh:e9d2b65bf95c2fd0f6a985eca82d2aab7702cd9062ac74e22a50c552fd3ba7df",
-  ]
-}
-
 provider "registry.terraform.io/hashicorp/google" {
   version = "4.80.0"
   hashes = [
