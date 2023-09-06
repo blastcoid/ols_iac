@@ -546,3 +546,107 @@ module "helm_argocd" {
     module.helm_certmanager
   ]
 }
+
+# module "helm_mongodb" {
+#   source               = "../../modules/cicd/helm"
+#   region               = var.region
+#   env                  = var.env
+#   repository           = "https://charts.bitnami.com/bitnami"
+#   chart                = "mongodb"
+#   service_account_name = "${var.unit}-${var.env}-${var.code[4]}-${var.db_feature[0]}"
+#   project_id           = "${var.unit}-platform-${var.env}"
+#   namespace            = "db"
+#   helm_sets = [
+#     {
+#       name  = "architecture"
+#       value = "standalone"
+#     },
+#     {
+#       name  = "useStatefulSet"
+#       value = "true"
+#     },
+#     {
+#       name  = "replicaCount"
+#       value = 1
+#     },
+#     {
+#       name  = "persistence.size"
+#       value = "2Gi"
+#     },
+#     {
+#       name  = "auth.rootPassword"
+#       value = "root"
+#     },
+#     {
+#       name  = "auth.rootPassword"
+#       value = "toor"
+#     },
+#     {
+#       name  = "clusterDomain"
+#       value = "gke-main.ols.blast.co.id"
+#     }
+#   ]
+#   helm_sets_list = [
+#     {
+#       name  = "auth.usernames"
+#       value = ["profile"]
+#     },
+#     {
+#       name  = "auth.passwords"
+#       value = ["profile"]
+#     },
+#     {
+#       name  = "auth.databases"
+#       value = ["profile"]
+#     }
+#   ]
+#   create_namespace = true
+#   depends_on = [
+#     module.gke_main
+#   ]
+# }
+
+# module "helm_redis" {
+#   source               = "../../modules/cicd/helm"
+#   region               = var.region
+#   env                  = var.env
+#   repository           = "https://charts.bitnami.com/bitnami"
+#   chart                = "redis"
+#   service_account_name = "${var.unit}-${var.env}-${var.code[4]}-${var.db_feature[1]}"
+#   project_id           = "${var.unit}-platform-${var.env}"
+#   namespace            = "db"
+#   helm_sets = [
+#     {
+#       name  = "master.kind"
+#       value = "StatefulSet"
+#     },
+#     {
+#       name  = "master.count"
+#       value = 1
+#     },
+#     {
+#       name  = "replica.replicaCount"
+#       value = 0
+#     },
+#     {
+#       name  = "master.persistence.enabled"
+#       value = false
+#     },
+#     {
+#       name  = "replica.persistence.enabled"
+#       value = false
+#     },
+#     {
+#       name  = "clusterDomain"
+#       value = "gke-main.ols.blast.co.id"
+#     },
+#     {
+#       name  = "global.password"
+#       value = "pass"
+#     },
+#   ]
+#   depends_on = [
+#     module.gke_main,
+#     module.helm_mongodb
+#   ]
+# }
