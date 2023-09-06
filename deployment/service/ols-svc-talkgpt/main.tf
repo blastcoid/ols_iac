@@ -115,32 +115,32 @@ module "github_repository" {
 # }
 
 
-# module "argocd_app" {
-#   source               = "../../../modules/cicd/helm"
-#   region               = var.region
-#   env                  = var.env
-#   repository           = "https://argoproj.github.io/argo-helm"
-#   chart                = "argocd-apps"
-#   service_account_name = "${var.unit}-${var.env}-${var.code}-${var.feature}"
-#   values               = ["${file("talkgpt/values.yaml")}"]
-#   namespace            = "cd"
-#   project_id           = "${var.unit}-platform-${var.env}"
-#   dns_name             = "dev.ols.blast.co.id" #trimsuffix(data.terraform_remote_state.dns_blast.outputs.dns_name, ".")
-#   extra_vars = {
-#     argocd_namespace      = "cd"
-#     source_repoURL        = "https://github.com/blastcoid/ols_helm"
-#     source_targetRevision = "HEAD"
-#     source_path = var.env == "dev" ? "charts/incubator/${var.unit}_${var.code}_${var.feature}" : (
-#       var.env == "stg" ? "charts/test/${var.unit}_${var.code}_${var.feature}" : "charts/stable/${var.unit}_${var.code}_${var.feature}"
-#     )
-#     project                                = "default"
-#     destination_server                     = "https://kubernetes.default.svc"
-#     destination_namespace                  = var.env
-#     syncPolicy_automated_prune             = true
-#     syncPolicy_automated_selfHeal          = true
-#     syncPolicy_syncOptions_CreateNamespace = true
-#   }
-# }
+module "argocd_app" {
+  source               = "../../../modules/cicd/helm"
+  region               = var.region
+  env                  = var.env
+  repository           = "https://argoproj.github.io/argo-helm"
+  chart                = "argocd-apps"
+  service_account_name = "${var.unit}-${var.env}-${var.code}-${var.feature}"
+  values               = ["${file("talkgpt/values.yaml")}"]
+  namespace            = "cd"
+  project_id           = "${var.unit}-platform-${var.env}"
+  dns_name             = "dev.ols.blast.co.id" #trimsuffix(data.terraform_remote_state.dns_blast.outputs.dns_name, ".")
+  extra_vars = {
+    argocd_namespace      = "cd"
+    source_repoURL        = "https://github.com/blastcoid/ols_helm"
+    source_targetRevision = "HEAD"
+    source_path = var.env == "dev" ? "charts/incubator/${var.unit}_${var.code}_${var.feature}" : (
+      var.env == "stg" ? "charts/test/${var.unit}_${var.code}_${var.feature}" : "charts/stable/${var.unit}_${var.code}_${var.feature}"
+    )
+    project                                = "default"
+    destination_server                     = "https://kubernetes.default.svc"
+    destination_namespace                  = var.env
+    syncPolicy_automated_prune             = true
+    syncPolicy_automated_selfHeal          = true
+    syncPolicy_syncOptions_CreateNamespace = true
+  }
+}
 
 
 module "workload_identity" {
