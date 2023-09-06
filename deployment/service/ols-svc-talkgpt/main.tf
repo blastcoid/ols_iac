@@ -1,7 +1,7 @@
 terraform {
   backend "gcs" {
     bucket = "ols-dev-storage-gcs-tfstate"
-    prefix = "service/ols/ols-dev-service-profile"
+    prefix = "service/ols/ols-dev-service-talkgpt"
   }
 }
 
@@ -48,8 +48,8 @@ module "github_repository" {
   has_wiki               = true
   delete_branch_on_merge = false
   auto_init              = true
-  # gitignore_template     = "Helm" # No template for helm
-  license_template = "apache-2.0"
+  gitignore_template     = "Node"
+  license_template       = "apache-2.0"
   security_and_analysis = {
     advanced_security = {
       status = "enabled"
@@ -61,7 +61,7 @@ module "github_repository" {
       status = "enabled"
     }
   }
-  topics               = ["python", "openai", "fastapi", "service", "docker", "argocd", "gcp", "kubernetes"]
+  topics               = ["nodejs", "openai", "text-to-speech", "service", "docker", "argocd", "google", "kubernetes"]
   vulnerability_alerts = true
   teams_permission = {
     technology = "pull"
@@ -122,7 +122,7 @@ module "github_repository" {
 #   repository           = "https://argoproj.github.io/argo-helm"
 #   chart                = "argocd-apps"
 #   service_account_name = "${var.unit}-${var.env}-${var.code}-${var.feature}"
-#   values               = ["${file("profile/values.yaml")}"]
+#   values               = ["${file("talkgpt/values.yaml")}"]
 #   namespace            = "cd"
 #   project_id           = "${var.unit}-platform-${var.env}"
 #   dns_name             = "dev.ols.blast.co.id" #trimsuffix(data.terraform_remote_state.dns_blast.outputs.dns_name, ".")
@@ -143,12 +143,12 @@ module "github_repository" {
 # }
 
 
-# module "workload_identity" {
-#   source                      = "../../../modules/gcp/iam/workload-identity"
-#   region                      = var.region
-#   env                         = var.env
-#   project_id                  = "${var.unit}-platform-${var.env}"
-#   service_account_name        = "${var.unit}-${var.code}-${var.feature}"
-#   google_service_account_role = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
-# }
+module "workload_identity" {
+  source                      = "../../../modules/gcp/iam/workload-identity"
+  region                      = var.region
+  env                         = var.env
+  project_id                  = "${var.unit}-platform-${var.env}"
+  service_account_name        = "${var.unit}-${var.code}-${var.feature}"
+  google_service_account_role = "roles/speech.admin"
+}
 

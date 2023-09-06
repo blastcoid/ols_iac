@@ -34,6 +34,5 @@ override.tf.json
 terraform.rc
 
 # Custom
-.terraform.lock.hcl
 secrets/
 *.pem

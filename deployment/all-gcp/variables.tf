@@ -20,7 +20,7 @@ variable "env" {
 variable "code" {
   type        = list(string)
   description = "Service domain code."
-  default     = ["network", "compute", "security", "helm"]
+  default     = ["network", "compute", "security", "helm", "db"]
 }
 
 # Features
@@ -52,6 +52,12 @@ variable "helm_feature" {
   type        = list(string)
   description = "Google Kubernetes Engine Feature names"
   default     = ["external-dns", "nginx", "cert-manager", "argocd"]
+}
+
+variable "db_feature" {
+  type        = list(string)
+  description = "Google Container Registry Feature names"
+  default     = ["mongo", "redis"]
 }
 
 # tfvars

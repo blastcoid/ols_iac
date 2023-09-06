@@ -92,7 +92,7 @@ variable "helm_sets_sensitive" {
 }
 
 variable "helm_sets_list" {
-  type        = list(object({ name : string, value : any }))
+  type        = list(object({ name : string, value : list(string) }))
   description = "list of helm set list"
   default     = []
 }
