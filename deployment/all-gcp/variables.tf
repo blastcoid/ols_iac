@@ -31,9 +31,9 @@ variable "vpc_feature" {
 }
 
 variable "dns_feature" {
-  type        = string
+  type        = list(string)
   description = "Cloud DNS Feature names"
-  default     = "dns-blast"
+  default     = ["dns-blast"]
 }
 
 variable "gke_feature" {

@@ -4,16 +4,12 @@ variable "region" {
   description = "The GCP region where resources will be created."
 }
 
-variable "env" {
-  type        = string
-  description = "Stage environment where the infrastructure will be deployed."
+variable "standard" {
+  type = map(string)
+  description = "The standard naming convention for resources."
 }
 
 # GKE Arguments
-variable "cluster_name" {
-  type        = string
-  description = "The name of the GKE cluster to create."
-}
 
 variable "issue_client_certificate" {
   type        = bool
@@ -94,11 +90,6 @@ variable "dns_config" {
     cluster_dns_domain = string # The domain name for the cluster.
   }))
   description = "Configuration for DNS within the cluster, including DNS scope and domain settings."
-}
-
-variable "resource_labels" {
-  type        = map(string)
-  description = "Labels to apply to the cluster's resources."
 }
 
 # GKE Node Pool Arguments

@@ -4,9 +4,9 @@ variable "region" {
   description = "The Google Cloud region where resources will be created."
 }
 
-variable "env" {
-  type        = string
-  description = "Environment stage (e.g., dev, prod) where the infrastructure will be deployed."
+variable "standard" {
+  type = map(string)
+  description = "The standard naming convention for resources."
 }
 
 # Service Account Arguments
@@ -21,11 +21,6 @@ variable "service_account_role" {
 }
 
 # Google Cloud Compute Arguments
-variable "instance_name" {
-  type        = string
-  description = "The name of the virtual machine instances."
-}
-
 variable "zone" {
   type        = string
   description = "The Google Cloud zone within the region for resource placement."
@@ -54,11 +49,6 @@ variable "disk_size" {
 variable "disk_type" {
   type        = string
   description = "The type of persistent disk to use (e.g., pd-standard, pd-ssd)."
-}
-
-variable "tags" {
-  type        = list(string)
-  description = "Tags to be applied to resources for identification and grouping."
 }
 
 variable "image" {

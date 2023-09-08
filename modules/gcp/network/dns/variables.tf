@@ -1,23 +1,18 @@
-#Naming Standard
+# GCP Settings
 variable "region" {
   type        = string
   description = "GCP region"
 }
 
-# cloud dns arguments
-variable "zone_name" {
-  type        = string
-  description = "the zone name to use"
+variable "standard" {
+  type = map(string)
+  description = "The standard naming convention for resources."
 }
 
+# cloud dns arguments
 variable "zone_dns_name" {
   type        = string
   description = "the dns name to use"
-}
-
-variable "zone_description" {
-  type        = string
-  description = "the zone description to use"
 }
 
 variable "zone_force_destroy" {

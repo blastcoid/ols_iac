@@ -1,7 +1,7 @@
 terraform {
   backend "gcs" {
     bucket = "ols-dev-storage-gcs-tfstate"
-    prefix = "service/ols/ols-dev-service-talkgpt"
+    prefix = "service/ols/ols-dev-service-sample"
   }
 }
 
@@ -35,6 +35,7 @@ locals {
   )
 }
 
+
 module "github_repository" {
   source                 = "../../../modules/github/repository"
   env                    = var.env
@@ -47,8 +48,8 @@ module "github_repository" {
   has_wiki               = true
   delete_branch_on_merge = false
   auto_init              = true
-  gitignore_template     = "Node"
-  license_template       = "apache-2.0"
+  # gitignore_template     = "Helm" # No template for helm
+  license_template = "apache-2.0"
   security_and_analysis = {
     advanced_security = {
       status = "enabled"
@@ -60,7 +61,7 @@ module "github_repository" {
       status = "enabled"
     }
   }
-  topics               = ["nodejs", "openai", "text-to-speech", "service", "docker", "argocd", "google", "kubernetes"]
+  topics               = ["python", "openai", "fastapi", "service", "docker", "argocd", "gcp", "kubernetes"]
   vulnerability_alerts = true
   teams_permission = {
     technology = "pull"
@@ -121,7 +122,7 @@ module "github_repository" {
 #   repository           = "https://argoproj.github.io/argo-helm"
 #   chart                = "argocd-apps"
 #   service_account_name = "${var.unit}-${var.env}-${var.code}-${var.feature}"
-#   values               = ["${file("talkgpt/values.yaml")}"]
+#   values               = ["${file("sample/values.yaml")}"]
 #   namespace            = "cd"
 #   project_id           = "${var.unit}-platform-${var.env}"
 #   dns_name             = "dev.ols.blast.co.id" #trimsuffix(data.terraform_remote_state.dns_blast.outputs.dns_name, ".")
@@ -148,6 +149,29 @@ module "github_repository" {
 #   env                         = var.env
 #   project_id                  = "${var.unit}-platform-${var.env}"
 #   service_account_name        = "${var.unit}-${var.code}-${var.feature}"
-#   google_service_account_role = "roles/speech.admin"
+#   google_service_account_role = "roles/datastore.user"
 # }
 
+# module "firestore_index" {
+#   source = "../../../modules/gcp/db/firestore/index"
+#   region = var.region
+#   standard = {
+#     unit = var.unit
+#     env  = var.env
+#     code = var.code
+#     feature = var.feature
+#   }
+#   project_id      = "${var.unit}-platform-${var.env}"
+#   database_name   = "(default)"
+#   collection_name = "sample"
+#   fields = [
+#     {
+#       "field_path" = "uuid"
+#       "order"      = "ASCENDING"
+#     },
+#     {
+#       "field_path" = "email"
+#       "order"      = "ASCENDING"
+#     },
+#   ]
+# }

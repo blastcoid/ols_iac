@@ -70,85 +70,84 @@ module "github_repository" {
   github_action_secrets = local.updated_secrets
 }
 
-module "artifact_repository" {
-  source                 = "../../../modules/gcp/storage/artifact-registry"
-  region                 = var.region
-  env                    = var.env
-  repository_id          = "${var.unit}-${var.env}-${var.code}-${var.feature}"
-  repository_format      = "DOCKER"
-  repository_mode        = "STANDARD_REPOSITORY"
-  cleanup_policy_dry_run = false
-  cleanup_policies = {
-    "delete-prerelease" = {
-      action = "DELETE"
-      condition = {
-        tag_state  = "TAGGED"
-        tag_prefix = ["alpha", "beta"]
-        older_than = "2592000s"
-      }
-    }
-    "keep-tagged-release" = {
-      action = "KEEP"
-      condition = {
-        tag_state             = "TAGGED"
-        tag_prefixes          = ["release"]
-        package_name_prefixes = ["${var.unit}-${var.env}-${var.code}-${var.feature}"]
-      }
-    }
-    "keep-minimum-versions" = {
-      action = "KEEP"
-      most_recent_versions = {
-        package_name_prefixes = ["${var.unit}-${var.env}-${var.code}-${var.feature}"]
-        keep_count            = 5
-      }
-    }
-  }
-}
+# module "artifact_repository" {
+#   source                 = "../../../modules/gcp/storage/artifact-registry"
+#   region                 = var.region
+#   env                    = var.env
+#   repository_id          = "${var.unit}-${var.env}-${var.code}-${var.feature}"
+#   repository_format      = "DOCKER"
+#   repository_mode        = "STANDARD_REPOSITORY"
+#   cleanup_policy_dry_run = false
+#   cleanup_policies = {
+#     "delete-prerelease" = {
+#       action = "DELETE"
+#       condition = {
+#         tag_state  = "TAGGED"
+#         tag_prefix = ["alpha", "beta"]
+#         older_than = "2592000s"
+#       }
+#     }
+#     "keep-tagged-release" = {
+#       action = "KEEP"
+#       condition = {
+#         tag_state             = "TAGGED"
+#         tag_prefixes          = ["release"]
+#         package_name_prefixes = ["${var.unit}-${var.env}-${var.code}-${var.feature}"]
+#       }
+#     }
+#     "keep-minimum-versions" = {
+#       action = "KEEP"
+#       most_recent_versions = {
+#         package_name_prefixes = ["${var.unit}-${var.env}-${var.code}-${var.feature}"]
+#         keep_count            = 5
+#       }
+#     }
+#   }
+# }
 
-data "terraform_remote_state" "dns_blast" {
-  backend = "gcs"
+# data "terraform_remote_state" "dns_blast" {
+#   backend = "gcs"
 
-  config = {
-    bucket = "ols-dev-storage-gcs-tfstate"
-    prefix = "gcp/network/ols-dev-network-dns-blast"
-  }
-}
-
-
-module "argocd_app" {
-  source               = "../../../modules/cicd/helm"
-  region               = var.region
-  env                  = var.env
-  repository           = "https://argoproj.github.io/argo-helm"
-  chart                = "argocd-apps"
-  service_account_name = "${var.unit}-${var.env}-${var.code}-${var.feature}"
-  values               = ["${file("genai/values.yaml")}"]
-  namespace            = "cd"
-  project_id           = "${var.unit}-platform-${var.env}"
-  dns_name             = "dev.ols.blast.co.id" #trimsuffix(data.terraform_remote_state.dns_blast.outputs.dns_name, ".")
-  extra_vars = {
-    argocd_namespace      = "cd"
-    source_repoURL        = "https://github.com/blastcoid/ols_helm"
-    source_targetRevision = "HEAD"
-    source_path = var.env == "dev" ? "charts/incubator/${var.unit}_${var.code}_${var.feature}" : (
-      var.env == "stg" ? "charts/test/${var.unit}_${var.code}_${var.feature}" : "charts/stable/${var.unit}_${var.code}_${var.feature}"
-    )
-    project                                = "default"
-    destination_server                     = "https://kubernetes.default.svc"
-    destination_namespace                  = var.env
-    syncPolicy_automated_prune             = true
-    syncPolicy_automated_selfHeal          = true
-    syncPolicy_syncOptions_CreateNamespace = true
-  }
-}
+#   config = {
+#     bucket = "ols-dev-storage-gcs-tfstate"
+#     prefix = "gcp/network/ols-dev-network-dns-blast"
+#   }
+# }
 
 
-module "workload_identity" {
-  source                      = "../../../modules/gcp/iam/workload-identity"
-  region                      = var.region
-  env                         = var.env
-  project_id                  = "${var.unit}-platform-${var.env}"
-  service_account_name        = "${var.unit}-${var.code}-${var.feature}"
-  google_service_account_role = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
-}
+# module "argocd_app" {
+#   source               = "../../../modules/cicd/helm"
+#   region               = var.region
+#   env                  = var.env
+#   repository           = "https://argoproj.github.io/argo-helm"
+#   chart                = "argocd-apps"
+#   service_account_name = "${var.unit}-${var.env}-${var.code}-${var.feature}"
+#   values               = ["${file("genai/values.yaml")}"]
+#   namespace            = "cd"
+#   project_id           = "${var.unit}-platform-${var.env}"
+#   dns_name             = "dev.ols.blast.co.id" #trimsuffix(data.terraform_remote_state.dns_blast.outputs.dns_name, ".")
+#   extra_vars = {
+#     argocd_namespace      = "cd"
+#     source_repoURL        = "https://github.com/blastcoid/ols_helm"
+#     source_targetRevision = "HEAD"
+#     source_path = var.env == "dev" ? "charts/incubator/${var.unit}_${var.code}_${var.feature}" : (
+#       var.env == "stg" ? "charts/test/${var.unit}_${var.code}_${var.feature}" : "charts/stable/${var.unit}_${var.code}_${var.feature}"
+#     )
+#     project                                = "default"
+#     destination_server                     = "https://kubernetes.default.svc"
+#     destination_namespace                  = var.env
+#     syncPolicy_automated_prune             = true
+#     syncPolicy_automated_selfHeal          = true
+#     syncPolicy_syncOptions_CreateNamespace = true
+#   }
+# }
 
+
+# module "workload_identity" {
+#   source                      = "../../../modules/gcp/iam/workload-identity"
+#   region                      = var.region
+#   env                         = var.env
+#   project_id                  = "${var.unit}-platform-${var.env}"
+#   service_account_name        = "${var.unit}-${var.code}-${var.feature}"
+#   google_service_account_role = "roles/cloudkms.cryptoKeyEncrypterDecrypter"
+# }

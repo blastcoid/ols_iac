@@ -1,16 +1,20 @@
 # Get the current project id
 data "google_project" "current" {}
 
+locals {
+  naming_standard = "${var.standard.unit}-${var.standard.env}-${var.standard.code}-${var.standard.feature}"
+}
+
 # Create a GKE cluster with 2 node pools
 resource "google_container_cluster" "cluster" {
   # Define the cluster name using variables
-  name = var.cluster_name
+  name             = "${local.naming_standard}-${var.standard.sub}"
   # Set the location based on environment and autopilot settings
-  location = var.env == "dev" && !var.enable_autopilot ? "${var.region}-a" : var.region
+  location         = var.standard.env == "dev" ? "${var.region}-a" : var.region
   # Enable autopilot if the variable is set, otherwise set to null
   enable_autopilot = !var.enable_autopilot ? null : true
-  # Configure cluster autoscaling if autopilot is not enabled
   dynamic "cluster_autoscaling" {
+    # Configure cluster autoscaling if autopilot is not enabled
     for_each = !var.enable_autopilot ? [var.cluster_autoscaling] : []
     content {
       enabled = cluster_autoscaling.value.enabled
@@ -28,15 +32,17 @@ resource "google_container_cluster" "cluster" {
   # Remove the default node pool if not in autopilot mode
   remove_default_node_pool = !var.enable_autopilot ? true : null
   initial_node_count       = 1
+
   # Configure master authentication with client certificate
   master_auth {
     client_certificate_config {
       issue_client_certificate = var.issue_client_certificate
     }
   }
+
   # Configure private cluster settings based on variables
   dynamic "private_cluster_config" {
-    for_each = var.private_cluster_config[var.env].enable_private_endpoint || var.private_cluster_config[var.env].enable_private_nodes ? [lookup(var.private_cluster_config, var.env)] : []
+    for_each = var.private_cluster_config[var.standard.env].enable_private_endpoint || var.private_cluster_config[var.standard.env].enable_private_nodes ? [lookup(var.private_cluster_config, var.standard.env)] : []
     content {
       enable_private_endpoint = private_cluster_config.value.enable_private_endpoint
       enable_private_nodes    = private_cluster_config.value.enable_private_nodes
@@ -86,9 +92,9 @@ resource "google_container_cluster" "cluster" {
   # Set network and subnetwork links
   network    = var.vpc_self_link
   subnetwork = var.subnet_self_link
-  # Configure DNS settings based on variables
+  # Configure DNS settings based on environment
   dynamic "dns_config" {
-    for_each = var.dns_config[var.env].cluster_dns != null ? [lookup(var.dns_config, var.env)] : []
+    for_each = var.dns_config[var.standard.env].cluster_dns != null ? [lookup(var.dns_config, var.standard.env)] : []
     content {
       cluster_dns        = dns_config.value.cluster_dns
       cluster_dns_scope  = dns_config.value.cluster_dns_scope
@@ -100,29 +106,36 @@ resource "google_container_cluster" "cluster" {
     workload_pool = "${data.google_project.current.project_id}.svc.id.goog"
   }
   # Define resource labels for the cluster
-  resource_labels = var.resource_labels
+  resource_labels = {
+    name    = "${local.naming_standard}-${var.standard.sub}"
+    unit    = var.standard.unit
+    env     = var.standard.env
+    code    = var.standard.code
+    feature = var.standard.feature
+    sub     = var.standard.sub
+  }
 }
 
 # Define local variable for node configuration based on environment
 locals {
-  node_config = var.env == "dev" ? { spot = var.node_config["spot"] } : var.node_config
+  node_config = var.standard.env == "dev" ? { spot = var.node_config["spot"] } : var.node_config
 }
 
 # Create an on-demand node pool
 resource "google_container_node_pool" "nodepool" {
   for_each   = !var.enable_autopilot ? local.node_config : {}
   name       = each.key
-  location   = var.env == "dev" && !var.enable_autopilot ? "${var.region}-a" : var.region
+  location   = var.standard.env == "dev" && !var.enable_autopilot ? "${var.region}-a" : var.region
   cluster    = google_container_cluster.cluster.name
-  node_count = var.env == "dev" ? 2 : each.value.node_count
+  node_count = var.standard.env == "dev" ? 2 : each.value.node_count
 
   # Define node configuration settings based on environment and variables
   node_config {
-    machine_type = var.env == "dev" ? each.value.machine_type["dev"] : (
-      var.env == "stg" ? each.value.machine_type["stg"] : each.value.machine_type["prd"]
+    machine_type = var.standard.env == "dev" ? each.value.machine_type["dev"] : (
+      var.standard.env == "stg" ? each.value.machine_type["stg"] : each.value.machine_type["prd"]
     )
     disk_size_gb    = each.value.disk_size_gb
-    disk_type       = var.env == "dev" ? each.value.disk_type[0] : each.value.disk_type[1]
+    disk_type       = var.standard.env == "dev" ? each.value.disk_type[0] : each.value.disk_type[1]
     service_account = each.value.service_account
     oauth_scopes    = each.value.oauth_scopes
     tags            = each.value.tags
@@ -143,11 +156,12 @@ resource "google_container_node_pool" "nodepool" {
     }
     # Define node labels
     labels = {
-      name          = "${var.cluster_name}-nodepool-${each.key}"
-      business_unit = split("-", var.cluster_name)[0]
-      environment   = var.env
-      code          = split("-", var.cluster_name)[2]
-      feature       = split("-", var.cluster_name)[3]
+      name          = "${local.naming_standard}-${var.standard.sub}-nodepool-${each.key}"
+      business_unit = var.standard.unit
+      environment   = var.standard.env
+      code          = var.standard.code
+      feature       = var.standard.feature
+      sub           = var.standard.sub
       type          = each.key
     }
   }

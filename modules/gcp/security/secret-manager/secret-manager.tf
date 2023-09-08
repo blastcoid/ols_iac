@@ -3,11 +3,11 @@ resource "google_secret_manager_secret" "secret" {
   secret_id = each.key
 
   labels = {
-    "unit"    = split("-", var.secret_name_prefix)[0]
-    "env"     = var.env
-    "code"    = split("-", var.secret_name_prefix)[2]
+    "unit"    = var.standard.unit
+    "env"     = var.standard.env
+    "code"    = var.standard.code
     "feature" = each.key
-    "name"    = "${var.secret_name_prefix}-${each.key}"
+    "name"    = "${var.standard.unit}-${var.standard.env}-${var.standard.code}-${each.key}"
   }
 
   replication {
@@ -19,11 +19,11 @@ resource "google_secret_manager_secret" "secret" {
   }
 
   annotations = {
-    "unit"    = split("-", var.secret_name_prefix)[0]
-    "env"     = var.env
-    "code"    = split("-", var.secret_name_prefix)[2]
+    "unit"    = var.standard.unit
+    "env"     = var.standard.env
+    "code"    = var.standard.code
     "feature" = each.key
-    "name"    = "${var.secret_name_prefix}-${each.key}"
+    "name"    = "${var.standard.unit}-${var.standard.env}-${var.standard.code}-${each.key}"
   }
 }
 

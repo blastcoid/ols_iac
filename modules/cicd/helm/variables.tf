@@ -4,9 +4,9 @@ variable "region" {
   description = "GCP region"
 }
 
-variable "env" {
-  type        = string
-  description = "stage environment where the infrastructure will be deployed"
+variable "standard" {
+  type = map(string)
+  description = "The standard naming convention for resources."
 }
 
 variable "project_id" {
@@ -15,10 +15,6 @@ variable "project_id" {
 }
 
 # service account arguments
-variable "service_account_name" {
-  type        = string
-  description = "service account name"
-}
 variable "create_service_account" {
   type        = bool
   description = "create google service account"
