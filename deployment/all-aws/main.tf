@@ -162,6 +162,13 @@ module "vpc_main" {
 # module "eks_main" {
 #   source                  = "../../modules/aws/compute/eks"
 #   region                  = var.region
+#   standard = {
+#     unit    = "ols"
+#     env     = "mstr"
+#     code    = "net"
+#     feature = "vpc"
+#     sub     = "main"
+#   }
 #   unit                    = var.unit
 #   env                     = var.env
 #   code                    = var.code[3]
