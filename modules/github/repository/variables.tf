@@ -1,23 +1,11 @@
-# Naming Standard
+# Github Settings
 
-variable "env" {
-  type        = string
-  description = "Stage environment"
+variable "standard" {
+  type        = map(string)
+  description = "A map containing standard naming convention variables for resources."
 }
 
 # Github repository arguments
-variable "repository_name" {
-  type        = string
-  description = "The name of the repository"
-  default     = null
-}
-
-variable "repository_readme" {
-  type        = string
-  description = "The repository README"
-  default     = null
-}
-
 variable "homepage_url" {
   type        = string
   description = "URL of a page describing the project."

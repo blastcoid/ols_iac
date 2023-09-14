@@ -2,28 +2,11 @@
 variable "region" {
   type        = string
   description = "The GCP region where resources will be created."
-  default     = "us-west-2"
 }
 
-variable "unit" {
-  type        = string
-  description = "Business unit code."
-  default     = "ols"
-}
-
-variable "env" {
-  type        = string
-  description = "Stage environment where the infrastructure will be deployed."
-}
-
-variable "code" {
-  type        = string
-  description = "Service domain code."
-}
-
-variable "feature" {
-  type        = list(string)
-  description = "Service feature."
+variable "standard" {
+  type        = map(string)
+  description = "A map containing standard naming convention variables for resources."
 }
 
 # Key Pair arguments

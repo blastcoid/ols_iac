@@ -1,5 +1,6 @@
 locals {
-  create_repository = var.env == "dev" ? 1 : 0
+  naming_standard   = var.standard.code != "repo" ? "${var.standard.unit}_${var.standard.code}_${var.standard.feature}" : "${var.standard.unit}_${var.standard.feature}"
+  create_repository = var.standard.env == "dev" || var.standard.env == "mstr" ? 1 : 0
   template = var.template != null ? {
     for template_key, template_value in var.template : template_key => template_value
   } : {}
@@ -7,8 +8,8 @@ locals {
 
 resource "github_repository" "repository" {
   count                  = local.create_repository
-  name                   = var.repository_name
-  description            = var.repository_readme
+  name                   = local.naming_standard
+  description            = "This is the repository for ${local.naming_standard}"
   homepage_url           = var.homepage_url
   visibility             = var.visibility
   has_issues             = var.has_issues
@@ -75,14 +76,14 @@ resource "github_repository" "repository" {
 }
 
 locals {
-  create_dev_branch = var.env == "dev" ? 1 : 0
-  create_stg_branch = var.env == "dev" && (var.repository_name == "ols_iac" || var.repository_name == "ols_helm") ? 1 : 0
+  create_dev_branch = var.standard.env == "dev" || var.standard.env == "mstr" ? 1 : 0
+  create_stg_branch = (var.standard.env == "dev" || var.standard.env == "mstr") && (github_repository.repository[0].name == "ols_iac" || github_repository.repository[0].name == "ols_helm") ? 1 : 0
 }
 
 resource "github_branch" "dev" {
   count         = local.create_dev_branch
   repository    = github_repository.repository[0].name
-  branch        = var.env
+  branch        = var.standard.env == "mstr" ? "dev" : var.standard.env
   source_branch = var.default_branch
 }
 
@@ -150,7 +151,7 @@ resource "github_branch_protection_v3" "branch_protectionv3" {
 }
 
 resource "github_repository_webhook" "webhooks" {
-  for_each   = var.webhooks != {} ? var.webhooks : {}
+  for_each   = length(var.webhooks) > 0 ? var.webhooks : {}
   repository = github_repository.repository[0].name
 
   dynamic "configuration" {
@@ -169,13 +170,13 @@ resource "github_repository_webhook" "webhooks" {
 }
 
 resource "github_team_repository" "team_repo" {
-  for_each   = var.teams_permission != {} ? var.teams_permission : {}
+  for_each   = length(var.teams_permission) > 0 ? var.teams_permission : {}
   team_id    = each.key
   repository = github_repository.repository[0].name
   permission = each.value
 }
 
-resource "github_repository_deploy_key" "example_repository_deploy_key" {
+resource "github_repository_deploy_key" "repository_deploy_key" {
   count      = var.public_key != null ? 1 : 0
   title      = "${github_repository.repository[count.index].name}-public-key"
   repository = github_repository.repository[count.index].name
@@ -202,11 +203,11 @@ resource "kubernetes_secret_v1" "argocd" {
 
 resource "github_repository_environment" "environment" {
   count       = length(var.github_action_secrets) > 0 ? 1 : 0
-  environment = "${github_repository.repository[count.index].name}_${var.env}"
+  environment = "${github_repository.repository[count.index].name}_${var.standard.env}"
   repository  = github_repository.repository[count.index].name
 }
 
-resource "github_actions_environment_secret" "test_secret" {
+resource "github_actions_environment_secret" "secret" {
   for_each        = var.github_action_secrets
   repository      = github_repository.repository[0].name
   environment     = github_repository_environment.environment[0].environment

@@ -1,8 +1,10 @@
-env = "dev"
-# secrets_ciphertext = {
-#   github-token-atlantis             = "CiQAyKnBR1JNCUBRBKBxddxnUDiqrJebCkaXg8IHDUo6vANqqP8SUQCfAnYWSp93mr52YX5cRyYGbtlhxYRy0edEDA0gd3oc26pJTtz0BYN1tgsFrJFTQ87pJs+pHcsz6CUJDA2kiRNpdrsWp2Pv2GeXwQWcPmQa3g=="
-#   github-token-iac                  = "CiQAyKnBR66GlQxdfH2UliN8AUqV7BH7PIYLit/BHcK0sqT7QTcSUQCfAnYWI/USvg1jTnimxaIU3VJDNdWDBUg5AU+pz1H7PHxRPEo+odyK7Y39RFTCVzoP0LQJq8CwDqeakbpWOaFpErvvq8Mrxx+agZnmHH9qDw=="
-#   github-secret                     = "CiQAyKnBR/kPJ6pzZVcM6XO868BHch3qzdvU8+HztZ/RHzl0jdQSqgEAnwJ2Fq3t28MywsfsKm9jvNhjqYc728o3zrXqfQ6kdkColULN1eepo2QF4ZDYXojkP31yIHAVoppKEHZHFOa19h23qy2EgxxO9/oh1Y7buz8ApdW9UHNwpJl/W7k1yCP+wqXomA7DjlX1HjJ1auNYDATGCApbCHN6Jde7NIqOOe1HIvDGvoiR2viE2wKH+06OuwoYoLe4KabXCu002KbBPSsR9q4+HCSscQ=="
-#   github-oauth-client-secret-argocd = "CiQAyKnBRxtXYe1aafTPIJGW8ee5j7yyoFIfoLrlcKQUc+SgKvASUQCfAnYWCrbkqfhTBrQyWM/D7E6cZEdcJIVivUWwAVLo1x/nlasZ6JwA2TkWisolF8c4By7jRxiP1y6gDMYhSkJMbtOaH8Ox0mBGtxsZpEkKOw=="
-#   atlantis-password                 = "CiQAyKnBR2BStE6otJI0DMI/iWOHoBtwQpInsFDvrLOWblv/sboSMgCfAnYWwyAP1NlsUDxqwSgfPa5NCHUnmwLlxT9ArblaWE1jStixi6a+bxDP6gvQSF/r"
-# }
+env = "mstr"
+
+configs = {
+  github_owner = "blastcoid"
+}
+secrets_ciphertext = {
+  github_token_iac = "AQICAHgUmSZTukL4Gkutt2/No3HqyGPN4o11Ym4LBI9+rKtMRQHfV3iS4up3OBSZIyHfU0HjAAAAhzCBhAYJKoZIhvcNAQcGoHcwdQIBADBwBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDB1SZvOHLNsYltfqYgIBEIBDjgeyIdL23M20NXGfyXj0DK3ex19QFBtzh7Ehtsk85pB0pgdAOM1JAl51NX2YOCPEKmqWPylxQW1HwmNr3CXYAC6Esw=="
+  github_token_atlantis = "AQICAHgUmSZTukL4Gkutt2/No3HqyGPN4o11Ym4LBI9+rKtMRQEq0yuwcLxopvIoJxFHJYQiAAAAhzCBhAYJKoZIhvcNAQcGoHcwdQIBADBwBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDIVENu5sZNnkFl5OqgIBEIBDOVlRP8bNpAOkLtPGbLBaP/0r/7ISpw6W2WBSYzaOuQbGnnIO7wip6KrqSp9ne/XOtJpILcjCOCM1rcNXjdc9Q3I4AA=="
+  github_oauth_client_secret = "AQICAHgUmSZTukL4Gkutt2/No3HqyGPN4o11Ym4LBI9+rKtMRQEKBOI7kHiB2tKjIAdbIAUeAAAAhzCBhAYJKoZIhvcNAQcGoHcwdQIBADBwBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDCp46ZY29ECeWGffPwIBEIBDll1acC1V8LHi8JzX9UTx/5PRjgNB1vRj+TYol9jJb3ZClO4tVZAOi/MnoTw8Zfi0E+j2/6Zq0RY0cvUT9LB2LgjGLA=="
+}

@@ -1,31 +1,14 @@
-# Naming Standard
+# AWS Settings
 variable "region" {
   type        = string
-  description = "The GCP region where resources will be created."
   default     = "us-west-2"
+  description = "The AWS region where resources will be created."
 }
 
-variable "unit" {
-  type        = string
-  description = "Business unit code."
-  default     = "ols"
+variable "standard" {
+  type        = map(string)
+  description = "A map containing standard naming convention variables for resources."
 }
-
-variable "env" {
-  type        = string
-  description = "Stage environment where the infrastructure will be deployed."
-}
-
-variable "code" {
-  type        = string
-  description = "Service domain code."
-}
-
-variable "feature" {
-  type        = list(string)
-  description = "Service feature."
-}
-
 
 # VPC arguments
 variable "vpc_cidr" {
@@ -33,26 +16,31 @@ variable "vpc_cidr" {
   description = "The CIDR block for the VPC."
 }
 
+variable "vpc_app_cidr" {
+  type        = string
+  description = "The CIDR block for the application subnet within the VPC."
+}
+
 variable "vpc_enable_dns_support" {
   type        = bool
-  description = "A boolean flag to enable/disable DNS support in the VPC."
   default     = false
+  description = "A boolean flag to enable/disable DNS support in the VPC."
 }
 
 variable "vpc_enable_dns_hostnames" {
   type        = bool
-  description = "A boolean flag to enable/disable DNS hostnames in the VPC."
   default     = false
+  description = "A boolean flag to enable/disable DNS hostnames in the VPC."
 }
 
 variable "vpc_instance_tenancy" {
   type        = string
-  description = "A tenancy option for instances launched into the VPC."
   default     = "default"
+  description = "A tenancy option for instances launched into the VPC (default, dedicated)."
 }
 
 # NAT arguments
 variable "nat_total_eip" {
   type        = number
-  description = "Total elastic IP of NAT gateway."
+  description = "The total number of Elastic IPs for the NAT Gateway."
 }

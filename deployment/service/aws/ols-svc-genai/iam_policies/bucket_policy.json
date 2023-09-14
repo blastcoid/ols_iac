@@ -1,0 +1,37 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowRoleIacAccessToBucket",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::${account_id}:role/iac"
+      },
+      "Action": [
+        "s3:*"
+      ],
+      "Resource": [
+        "${bucket_arn}/*",
+        "${bucket_arn}"
+      ]
+    },
+    {
+      "Sid": "AllowUserIacAccessToBucket",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::${account_id}:role/ols-mstr-ops-cp-genai-role"
+      },
+      "Action": [
+        "s3:GetObject",
+        "s3:GetObjectVersion",
+        "s3:GetBucketVersioning",
+        "s3:PutObjectAcl",
+        "s3:PutObject"
+      ],
+      "Resource": [
+        "${bucket_arn}/*",
+        "${bucket_arn}"
+      ]
+    }
+  ]
+}

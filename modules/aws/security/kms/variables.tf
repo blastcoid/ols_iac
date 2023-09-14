@@ -1,27 +1,12 @@
-#Naming Standard
+# AWS Settings
 variable "region" {
   type        = string
   description = "AWS region"
 }
 
-variable "unit" {
-  type        = string
-  description = "business unit code"
-}
-
-variable "env" {
-  type        = string
-  description = "stage environment where the infrastructure will be deployed"
-}
-
-variable "code" {
-  type        = string
-  description = "service domain code to use"
-}
-
-variable "feature" {
-  type        = list(string)
-  description = "the name of AWS services feature"
+variable "standard" {
+  type        = map(string)
+  description = "A map containing standard naming convention variables for resources."
 }
 
 # KMS arguments
@@ -46,7 +31,6 @@ variable "kms_key_usage" {
 }
 
 variable "kms_policy" {
-  type        = string
   description = "A valid policy JSON document. For more information about building AWS IAM policy documents with Terraform."
 }
 

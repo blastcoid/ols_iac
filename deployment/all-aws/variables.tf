@@ -16,11 +16,23 @@ variable "env" {
   description = "Stage environment where the infrastructure will be deployed."
 }
 
+# Config & Secrets
+variable "configs" {
+  type        = map(string)
+  description = "A map containing config variables for resources."
+}
+
+variable "secrets_ciphertext" {
+  type        = map(string)
+  description = "The encrypted secret value."
+  # sensitive   = true
+}
+
 # VPC naming standard
 variable "code" {
   type        = list(string)
   description = "Service domain code."
-  default     = ["storage","security", "network", "compute"]
+  default     = ["storage", "security", "network", "compute"]
 }
 
 # Features

@@ -22,3 +22,14 @@ provider "aws" {
   #   }
   # }
 }
+
+# Create terraform state
+terraform {
+  backend "s3" {
+    bucket  = "ols-mstr-stor-s3-tfstate"
+    key     = "aws/all/ols-mstr-all-deployment.tfstate"
+    region  = "us-west-1"
+    profile = "ols-mstr"
+  }
+}
+

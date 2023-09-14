@@ -1,39 +1,23 @@
-# Naming Standard
+# AWS Settings
 variable "region" {
   type        = string
-  description = "The GCP region where resources will be created."
+  description = "The AWS region where resources will be deployed. This is used to define the AWS region for the provider and any regional resources. Default is 'us-west-2'."
   default     = "us-west-2"
 }
 
-variable "unit" {
-  type        = string
-  description = "Business unit code."
-  default     = "ols"
-}
-
-variable "env" {
-  type        = string
-  description = "Stage environment where the infrastructure will be deployed."
-}
-
-variable "code" {
-  type        = string
-  description = "Service domain code."
-}
-
-variable "feature" {
-  type        = list(string)
-  description = "Service feature."
+variable "standard" {
+  type        = map(string)
+  description = "A map containing elements that form the standard naming convention for resources. Typically includes 'unit', 'env', 'code', 'feature', and possibly 'sub'."
 }
 
 # Route53 arguments
 variable "route53_zone_name" {
   type        = string
-  description = "The name of the zone."
+  description = "The domain name for the Route53 hosted zone. This will be fully qualified, for example 'example.com.'"
 }
 
 variable "route53_force_destroy" {
   type        = bool
-  description = "Whether to destroy all records (possibly managed outside of Terraform) in the zone when destroying the zone."
+  description = "A boolean flag indicating whether to destroy all records in the zone and delete the zone itself when destroying the resource. Default is false."
   default     = false
 }
