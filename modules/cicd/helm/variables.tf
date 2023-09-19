@@ -1,20 +1,27 @@
 # GCP Settings
 variable "region" {
   type        = string
-  description = "GCP region"
+  description = "AWS or GCP region"
 }
 
 variable "standard" {
-  type = map(string)
+  type        = map(string)
   description = "The standard naming convention for resources."
+}
+
+variable "cloud_provider" {
+  type        = string
+  description = "cloud provider"
+  default     = "gcp"
 }
 
 variable "project_id" {
   type        = string
   description = "GCP project id"
+  default     = null
 }
 
-# service account arguments
+# GCP arguments
 variable "create_service_account" {
   type        = bool
   description = "create google service account"
@@ -31,6 +38,25 @@ variable "google_service_account_role" {
   type        = list(string)
   description = "GCP service account role"
   default     = []
+}
+
+# AWS arguments
+variable "eks_oidc_url" {
+  type        = string
+  description = "EKS OIDC url"
+  default     = null
+}
+
+variable "eks_oidc_arn" {
+  type        = string
+  description = "EKS OIDC arn"
+  default     = null
+}
+
+variable "iam_policy" {
+  type        = string
+  description = "IAM policy"
+  default     = null
 }
 
 # helm arguments

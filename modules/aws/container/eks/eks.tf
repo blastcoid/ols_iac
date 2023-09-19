@@ -4,15 +4,15 @@ locals {
 
 resource "aws_eks_cluster" "cluster" {
   name     = var.override_eks_name == null ? "${local.naming_standard}-${var.standard.sub}" : var.override_eks_name
-  role_arn = aws_iam_role.eks_role.arn
-  version  = var.k8s_version
+  role_arn = aws_iam_role.cluster_role.arn
+  version  = var.cluster_version
 
 
   dynamic "vpc_config" {
-    for_each = toset(var.vpc_config)
+    for_each = var.vpc_config != null ? [var.vpc_config] : []
     content {
       subnet_ids              = vpc_config.value.subnet_ids
-      security_group_ids      = length(vpc_config.value.security_group_ids) > 0 ? vpc_config.value.security_group_ids : [aws_security_group.cluster.id]
+      security_group_ids      = vpc_config.value.security_group_ids
       public_access_cidrs     = vpc_config.value.public_access_cidrs
       endpoint_private_access = vpc_config.value.endpoint_private_access
       endpoint_public_access  = vpc_config.value.endpoint_public_access
@@ -20,15 +20,12 @@ resource "aws_eks_cluster" "cluster" {
   }
 
   dynamic "encryption_config" {
-    for_each = toset(var.encryption_config)
+    for_each = var.key_arn != null ? [1] : []
     content {
-      dynamic "provider" {
-        for_each = toset(encryption_config.value.provider)
-        content {
-          key_arn = provider.value.key_arn
-        }
+      provider {
+        key_arn = var.key_arn
       }
-      resources = encryption_config.value.resources
+      resources = ["secrets"]
     }
   }
 
@@ -44,6 +41,8 @@ resource "aws_eks_cluster" "cluster" {
   # Otherwise, EKS will not be able to properly delete EKS managed EC2 infrastructure such as Security Groups.
   depends_on = [
     aws_iam_role_policy_attachment.eks_cluster_attachment,
+    aws_iam_role_policy_attachment.eks_service_policy_attachment,
     aws_iam_role_policy_attachment.eks_pods_sg_attachment,
+    aws_kms_grant.grant_cluster
   ]
 }

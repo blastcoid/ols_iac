@@ -39,6 +39,12 @@ variable "vpc_instance_tenancy" {
   description = "A tenancy option for instances launched into the VPC (default, dedicated)."
 }
 
+# Subnet arguments
+variable "cluster_name" {
+  type        = string
+  description = "The name of the EKS cluster."
+}
+
 # NAT arguments
 variable "nat_total_eip" {
   type        = number

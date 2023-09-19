@@ -7,75 +7,29 @@ resource "kubernetes_namespace" "namespace" {
 }
 
 locals {
-  naming_standard = "${var.standard.unit}-${var.standard.env}-${var.standard.code}-${var.standard.feature}"
-  namespace = var.create_namespace ? kubernetes_namespace.namespace[0].metadata[0].name : var.namespace
-}
-
-resource "kubernetes_manifest" "manifest" {
-  count    = var.create_managed_certificate ? 1 : 0
-  manifest = yamldecode(templatefile("${path.module}/managed-cert.yaml", { feature = var.standard.feature, env = var.standard.env, namespace = local.namespace, dns_name = var.dns_name }))
-}
-
-resource "google_service_account" "gsa" {
-  count        = var.create_service_account ? 1 : 0
-  project      = var.project_id
-  account_id   = local.naming_standard
-  display_name = "Service Account for helm ${local.naming_standard}"
-}
-
-# Assign the specified IAM role to the service account
-resource "google_project_iam_member" "sa_iam" {
-  count   = var.create_service_account ? length(var.google_service_account_role) : 0
-  project = var.project_id
-  role    = var.google_service_account_role[count.index]
-  member  = "serviceAccount:${google_service_account.gsa[0].email}"
-}
-
-# binding service account to service account token creator
-resource "google_service_account_iam_binding" "token_creator" {
-  count              = var.create_service_account && var.use_workload_identity ? 1 : 0
-  service_account_id = google_service_account.gsa[0].name
-  role               = "roles/iam.serviceAccountTokenCreator"
-
-  members = var.standard.feature != "argocd" ? [
-    "serviceAccount:${var.project_id}.svc.id.goog[${local.namespace}/${local.naming_standard}]"
-    ] : [
-    "serviceAccount:${var.project_id}.svc.id.goog[${local.namespace}/${var.standard.feature}-server]",
-    "serviceAccount:${var.project_id}.svc.id.goog[${local.namespace}/${var.standard.feature}-application-controller]",
-    "serviceAccount:${var.project_id}.svc.id.goog[${local.namespace}/${var.standard.feature}-repo-server]",
-  ]
-}
-
-# binding service account to workload identity
-resource "google_service_account_iam_binding" "workload_identity_binding" {
-  count              = var.create_service_account && var.use_workload_identity ? 1 : 0
-  service_account_id = google_service_account.gsa[0].name
-  role               = "roles/iam.workloadIdentityUser"
-  members = var.standard.feature != "argocd" ? [
-    "serviceAccount:${var.project_id}.svc.id.goog[${local.namespace}/${local.naming_standard}]"
-    ] : [
-    "serviceAccount:${var.project_id}.svc.id.goog[${local.namespace}/${var.standard.feature}-server]",
-    "serviceAccount:${var.project_id}.svc.id.goog[${local.namespace}/${var.standard.feature}-application-controller]",
-    "serviceAccount:${var.project_id}.svc.id.goog[${local.namespace}/${var.standard.feature}-repo-server]",
-  ]
+  naming_standard = "${var.standard.unit}-${var.standard.env}-${var.standard.code}-${var.standard.feature}-${var.standard.sub}"
+  helm_naming_standard = "${var.standard.unit}-${var.standard.env}-${var.standard.feature}-${var.standard.sub}"
+  namespace       = var.create_namespace ? kubernetes_namespace.namespace[0].metadata[0].name : var.namespace
 }
 
 resource "helm_release" "helm" {
-  name       = "${var.standard.unit}-${var.standard.feature}"
+  name       = "${var.standard.unit}-${var.standard.sub}"
   repository = var.repository
   chart      = var.chart
   values = length(var.values) > 0 ? sensitive([
     "${templatefile(
-      "${replace(var.standard.feature, "-", "_")}/values.yaml",
+      "helm/${var.standard.sub}.yaml",
       {
-        service_account_name       = local.naming_standard
-        unit                       = var.standard.unit
-        code                       = var.standard.code
-        env                        = var.standard.env
-        feature                    = var.standard.feature
-        dns_name                   = var.dns_name
-        service_account_annotation = var.create_service_account ? google_service_account.gsa[0].email : null
-        extra_vars                 = var.extra_vars
+        service_account_name = local.helm_naming_standard
+        unit                 = var.standard.unit
+        code                 = var.standard.code
+        env                  = var.standard.env
+        feature              = var.standard.feature
+        dns_name             = var.dns_name
+        service_account_annotation = var.cloud_provider == "gcp" && var.create_service_account ? google_service_account.gsa[0].email : (
+          var.cloud_provider == "aws" && var.create_service_account ? aws_iam_role.role[0].arn : null
+        )
+        extra_vars = var.extra_vars
       }
       )
     }"
@@ -119,7 +73,7 @@ resource "kubernetes_manifest" "after_helm_manifest" {
     env                  = var.standard.env
     code                 = var.standard.code
     feature              = var.standard.feature
-    service_account_name = local.naming_standard,
+    service_account_name = local.helm_naming_standard,
     namespace            = local.namespace,
     dns_name             = var.dns_name
     extra_vars           = var.extra_vars
@@ -134,7 +88,7 @@ resource "kubectl_manifest" "after_crd_installed" {
     env                  = var.standard.env
     code                 = var.standard.code
     feature              = var.standard.feature
-    service_account_name = local.naming_standard,
+    service_account_name = local.helm_naming_standard,
     namespace            = local.namespace,
     dns_name             = var.dns_name
     extra_vars           = var.extra_vars

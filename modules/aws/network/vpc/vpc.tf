@@ -33,8 +33,8 @@ resource "aws_vpc" "vpc" {
 # ---------------------------------------
 # Associate the additional VPC CIDR block with the VPC.
 resource "aws_vpc_ipv4_cidr_block_association" "secondary_cidr" {
-  vpc_id      = aws_vpc.vpc.id
-  cidr_block  = var.vpc_app_cidr
+  vpc_id     = aws_vpc.vpc.id
+  cidr_block = var.vpc_app_cidr
 }
 
 # AWS Node Subnets Resource
@@ -46,12 +46,13 @@ resource "aws_subnet" "node" {
   cidr_block        = cidrsubnet(aws_vpc.vpc.cidr_block, 2, count.index)
   availability_zone = element(data.aws_availability_zones.az.names, count.index)
   tags = {
-    "Name"    = "${local.naming_standard}-subnet-node-${split("-", element(data.aws_availability_zones.az.names, count.index))[2]}"
-    "Unit"    = var.standard.unit
-    "Env"     = var.standard.env
-    "Code"    = var.standard.code
-    "Feature" = var.standard.feature
-    "Zones"   = element(data.aws_availability_zones.az.names, count.index)
+    "Name"                                      = "${local.naming_standard}-subnet-node-${split("-", element(data.aws_availability_zones.az.names, count.index))[2]}"
+    "Unit"                                      = var.standard.unit
+    "Env"                                       = var.standard.env
+    "Code"                                      = var.standard.code
+    "Feature"                                   = var.standard.feature
+    "Zones"                                     = element(data.aws_availability_zones.az.names, count.index)
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
   }
 }
 
@@ -64,12 +65,13 @@ resource "aws_subnet" "app" {
   cidr_block        = cidrsubnet(aws_vpc_ipv4_cidr_block_association.secondary_cidr.cidr_block, 3, count.index)
   availability_zone = element(data.aws_availability_zones.az.names, count.index)
   tags = {
-    "Name"    = "${local.naming_standard}-subnet-app-${split("-", element(data.aws_availability_zones.az.names, count.index))[2]}"
-    "Unit"    = var.standard.unit
-    "Env"     = var.standard.env
-    "Code"    = var.standard.code
-    "Feature" = var.standard.feature
-    "Zones"   = element(data.aws_availability_zones.az.names, count.index)
+    "Name"                                      = "${local.naming_standard}-subnet-app-${split("-", element(data.aws_availability_zones.az.names, count.index))[2]}"
+    "Unit"                                      = var.standard.unit
+    "Env"                                       = var.standard.env
+    "Code"                                      = var.standard.code
+    "Feature"                                   = var.standard.feature
+    "Zones"                                     = element(data.aws_availability_zones.az.names, count.index)
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
   }
 }
 
@@ -100,11 +102,12 @@ resource "aws_subnet" "public" {
   cidr_block        = length(data.aws_availability_zones.az.names) <= 2 ? cidrsubnet(aws_vpc.vpc.cidr_block, 3, count.index + 6) : cidrsubnet(aws_vpc.vpc.cidr_block, 5, count.index + 7)
   availability_zone = element(data.aws_availability_zones.az.names, count.index)
   tags = {
-    "Name"    = "${local.naming_standard}-subnet-public-${split("-", element(data.aws_availability_zones.az.names, count.index))[2]}"
-    "Unit"    = var.standard.unit
-    "Env"     = var.standard.env
-    "Code"    = var.standard.code
-    "Feature" = var.standard.feature
-    "Zones"   = element(data.aws_availability_zones.az.names, count.index)
+    "Name"                                      = "${local.naming_standard}-subnet-public-${split("-", element(data.aws_availability_zones.az.names, count.index))[2]}"
+    "Unit"                                      = var.standard.unit
+    "Env"                                       = var.standard.env
+    "Code"                                      = var.standard.code
+    "Feature"                                   = var.standard.feature
+    "Zones"                                     = element(data.aws_availability_zones.az.names, count.index)
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
   }
 }

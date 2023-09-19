@@ -17,3 +17,8 @@ output "primary_name_server" {
   value       = aws_route53_zone.zone.name_servers
   description = "A list of primary name servers for the Route53 hosted zone. This is typically the same as route53_name_servers."
 }
+
+output "route53_zone_name" {
+  value       = aws_route53_zone.zone.name
+  description = "The name of the Route53 hosted zone."
+}

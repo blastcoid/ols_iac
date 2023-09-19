@@ -1,10 +1,6 @@
-global:
-  nodeSelector:
-    iam.gke.io/gke-metadata-server-enabled: "true"
-
 configs:
   cm:
-    url: "https://${feature}.${env}.${dns_name}"
+    url: "https://${sub}.${env}.${dns_name}"
     dex.config: |
       connectors:
         - type: github
@@ -13,11 +9,11 @@ configs:
           config:
             clientID: ${extra_vars.github_client_id}
             clientSecret: $argocd-secret:dex.github.clientSecret
-            redirectURI: 'https://${feature}.${env}.${dns_name}/api/dex/callback'
+            redirectURI: 'https://${sub}.${env}.${dns_name}/api/dex/callback'
             orgs:
               - name: ${extra_vars.github_orgs}
   params:
-    server.insecure: true
+    server.insecure: ${extra_vars.server_insecure}
   rbac:
     policy.default: role:readonly
     policy.csv: |
@@ -60,11 +56,12 @@ configs:
       # set admin policy for devops team in github orgs
       g, ${extra_vars.github_orgs}:devops, role:devops-role
       g, devops, role:devops-role
+  # ref: https://github.com/argoproj-labs/argocd-vault-plugin/blob/main/manifests/cmp-sidecar/cmp-plugin.yaml
   cmp:
     # -- Create the argocd-cmp-cm configmap
     create: true
     plugins:
-      avp-helm:
+      argocd-vault-plugin-helm:
         allowConcurrency: true
 
         # Note: this command is run _before_ any Helm templating is done, therefore the logic is to check
@@ -76,14 +73,14 @@ configs:
               - "-c"
               - "find . -name 'Chart.yaml' && find . -name 'values.yaml'"
         generate:
-          # **IMPORTANT**: passing effectively allows users to run arbitrary code in the Argo CD 
+          # **IMPORTANT**: passing effectively allows users to run arbitrary code in the Argo CD
           # repo-server (or, if using a sidecar, in the plugin sidecar). Only use this when the users are completely trusted. If
           # possible, determine which Helm arguments are needed by your users and explicitly pass only those arguments.
           command:
             - sh
             - "-c"
             - |
-              helm template $ARGOCD_APP_NAME -n $ARGOCD_APP_NAMESPACE . |
+              helm template $ARGOCD_APP_NAME -n $ARGOCD_APP_NAMESPACE . --include-crds |
               argocd-vault-plugin generate -
         lockRepo: false
 
@@ -91,11 +88,11 @@ configs:
 controller:
   serviceAccount:
     annotations:
-      iam.gke.io/gcp-service-account: "${service_account_annotation}"
+      eks.amazonaws.com/role-arn: "${service_account_annotation}"
 server:
   serviceAccount:
     annotations:
-      iam.gke.io/gcp-service-account: "${service_account_annotation}"
+      eks.amazonaws.com/role-arn: "${service_account_annotation}"
   service:
     type: ClusterIP
     servicePortHttp: 80
@@ -103,35 +100,39 @@ server:
   ingress:
     enabled: true
     hosts:
-      - "${feature}.${env}.${dns_name}"
+      - "${sub}.${env}.${dns_name}"
     annotations:
-      # nginx.ingress.kubernetes.io/ssl-passthrough: "true"
-      # nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
-      external-dns.alpha.kubernetes.io/hostname: "${feature}.${env}.${dns_name}"
+      external-dns.alpha.kubernetes.io/hostname: "${sub}.${env}.${dns_name}"
       external-dns.alpha.kubernetes.io/ttl: "300"
-      kubernetes.io/tls-acme: "true"
-      cert-manager.io/cluster-issuer: "letsencrypt-${unit}-${env}"
-    ingressClassName: "nginx"
-    tls:
-      - secretName: "${unit}-${feature}-server-tls"
-        hosts:
-          - "${feature}.${env}.${dns_name}"
+      alb.ingress.kubernetes.io/group.name: ${unit}-${env}-svc-ingress
+      alb.ingress.kubernetes.io/certificate-arn: ${extra_vars.alb_certificate_arn}
+      alb.ingress.kubernetes.io/ssl-policy: ${extra_vars.alb_ssl_policy}
+      alb.ingress.kubernetes.io/backend-protocol: ${extra_vars.alb_backend_protocol}
+      alb.ingress.kubernetes.io/listen-ports: "${extra_vars.alb_listen_ports}"
+      alb.ingress.kubernetes.io/scheme: ${extra_vars.alb_scheme}
+      alb.ingress.kubernetes.io/target-type: ${extra_vars.alb_target_type}
+      alb.ingress.kubernetes.io/group.order: "${extra_vars.alb_group_order}"
+  ingressGrpc:
+    enabled: true
+    isAWSALB: true
+    awsALB:
+      serviceType: ClusterIP
     # http: false
 
+# ref: https://github.com/argoproj-labs/argocd-vault-plugin/blob/main/manifests/cmp-sidecar/argocd-repo-server.yaml
 repoServer:
   serviceAccount:
+    name: ${feature}-repo-server
     annotations:
-      iam.gke.io/gcp-service-account: "${service_account_annotation}"
+      eks.amazonaws.com/role-arn: "${service_account_annotation}"
     # Not strictly necessary, but required for passing AVP configuration from a secret and for using Kubernetes auth to Hashicorp Vault
     automountServiceAccountToken: true
-  volumeMounts:
-    - name: custom-tools
-      mountPath: /usr/local/bin/argocd-vault-plugin
-      subPath: argocd-vault-plugin
   volumes:
     - configMap:
         name: argocd-cmp-cm
-      name: cmp-plugin
+      name: argocd-cmp-cm
+    - name: cmp-tmp
+      emptyDir: {}
     - name: custom-tools
       emptyDir: {}
   initContainers:
@@ -139,11 +140,11 @@ repoServer:
       image: registry.access.redhat.com/ubi8
       env:
         - name: AVP_VERSION
-          value: 1.16.1
+          value: ${extra_vars.AVP_VERSION}
       command: [sh, -c]
       args:
         - >-
-          curl -L https://github.com/argoproj-labs/argocd-vault-plugin/releases/download/v$(AVP_VERSION)/argocd-vault-plugin_$(AVP_VERSION)_linux_amd64 -o argocd-vault-plugin &&
+          curl -L https://github.com/argoproj-labs/argocd-vault-plugin/releases/download/v${extra_vars.AVP_VERSION}/argocd-vault-plugin_${extra_vars.AVP_VERSION}_linux_arm64 -o argocd-vault-plugin &&
           chmod +x argocd-vault-plugin &&
           mv argocd-vault-plugin /custom-tools/
 
@@ -151,6 +152,7 @@ repoServer:
         - mountPath: /custom-tools
           name: custom-tools
   extraContainers:
+    # argocd-vault-plugin with Helm
     - name: avp-helm
       command: [/var/run/argocd/argocd-cmp-server]
       image: quay.io/argoproj/argocd:v2.7.9
@@ -163,12 +165,12 @@ repoServer:
         - mountPath: /home/argocd/cmp-server/plugins
           name: plugins
         - mountPath: /tmp
-          name: tmp
+          name: cmp-tmp
 
         # Register plugins into sidecar
         - mountPath: /home/argocd/cmp-server/config/plugin.yaml
-          subPath: avp-helm.yaml
-          name: cmp-plugin
+          subPath: argocd-vault-plugin-helm.yaml
+          name: argocd-cmp-cm
 
         # Important: Mount tools into $PATH
         - name: custom-tools
