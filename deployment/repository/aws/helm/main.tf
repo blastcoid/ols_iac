@@ -12,7 +12,7 @@ data "aws_ssm_parameter" "ssh_key" {
 }
 
 data "tls_public_key" "public_key" {
-  private_key_pem = data.aws_ssm_parameter.ssh_key.value
+  private_key_openssh = data.aws_ssm_parameter.ssh_key.value
 }
 
 module "github_repository" {
@@ -78,7 +78,7 @@ module "github_repository" {
     devops     = "triage"
   }
   public_key              = data.tls_public_key.public_key.public_key_openssh
-  # ssh_key                 = data.aws_ssm_parameter.ssh_key.value
+  ssh_key                 = data.aws_ssm_parameter.ssh_key.value
   is_deploy_key_read_only = false
-  # argocd_namespace        = "cd"
+  argocd_namespace        = "cd"
 }

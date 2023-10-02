@@ -14,7 +14,9 @@ applications:
       name: argocd-vault-plugin-helm
       env:
         - name: AVP_TYPE
-          value: gcpsecretmanager
+          value: ${extra_vars.avp_type}
+        - name: AWS_REGION
+          value: ${extra_vars.region}
     directory:
       recurse: false
   # ArgoCD v2.6 or later

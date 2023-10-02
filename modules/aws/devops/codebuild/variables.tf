@@ -11,7 +11,7 @@ variable "standard" {
 
 # Codepipeline role arguments - required
 variable "codebuild_policy" {
-  type = string
+  type        = string
   description = "The policy document of the CodeBuild role from data source"
 }
 
@@ -22,6 +22,10 @@ variable "kms_grant_operations" {
 }
 
 # CodeBuild arguments - required
+variable "name" {
+  type        = string
+  description = "The name of the build project."
+}
 
 # ref: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/codebuild_project#artifacts
 variable "artifacts" {

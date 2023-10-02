@@ -1,11 +1,6 @@
-locals {
-  naming_standard     = "${var.standard.unit}-${var.standard.env}-${var.standard.code}-${var.standard.feature}-${var.standard.sub}"
-  svc_naming_standard = "${var.standard.unit}-${var.standard.env}-${var.standard.sub}-${var.standard.name}"
-}
-
 resource "aws_codebuild_project" "project" {
   # Required
-  name         = var.standard.sub == "svc" && var.standard.name != null ? local.svc_naming_standard : local.naming_standard
+  name         = var.name
   service_role = aws_iam_role.role.arn
   dynamic "artifacts" {
     for_each = [var.artifacts]
@@ -81,7 +76,7 @@ resource "aws_codebuild_project" "project" {
     }
   }
   concurrent_build_limit = var.concurrent_build_limit
-  description            = "CodeBuild project for ${local.naming_standard}"
+  description            = "CodeBuild project for ${var.name}"
   dynamic "file_system_locations" {
     for_each = var.file_system_locations != null ? [var.file_system_locations] : []
     content {
@@ -168,13 +163,5 @@ resource "aws_codebuild_project" "project" {
       vpc_id             = vpc_config.value.vpc_id
     }
   }
-  tags = {
-    "Name"    = local.naming_standard
-    "Unit"    = var.standard.unit
-    "Env"     = var.standard.env
-    "Code"    = var.standard.code
-    "Feature" = var.standard.feature
-    "Sub"     = var.standard.sub
-    "Service" = var.standard.name
-  }
+  tags = var.standard
 }

@@ -1,11 +1,9 @@
-# Service naming standard
+# AWS Settings
 variable "region" {
   type        = string
   description = "AWS region"
-  default     = "us-west-1"
 }
 
-# Naming Standard
 variable "unit" {
   type        = string
   description = "Business unit code"
@@ -15,6 +13,12 @@ variable "unit" {
 variable "env" {
   type        = string
   description = "Stage environment"
+}
+
+# GitHub Settings
+variable "github_owner" {
+  type        = string
+  description = "GitHub owner"
 }
 
 # Configs and Secrets for AWS SSM Parameter Store

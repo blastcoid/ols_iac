@@ -1,11 +1,13 @@
-env = "mstr"
+env          = "mstr"
+region       = "us-west-1"
+github_owner = "blastcoid"
 configs = {
-  app_host = "0.0.0.0"
-  app_port = "8000"
-  app_log_level = "debug"
-  openai_chatcompletion_model = "gpt-3.5-turbo"
+  app_host                          = "0.0.0.0"
+  app_port                          = "8000"
+  app_log_level                     = "debug"
+  openai_chatcompletion_model       = "gpt-3.5-turbo"
   openai_chatcompletion_temperature = "0.5"
-  openai_max_response_tokens = "1000"
+  openai_max_response_tokens        = "1000"
 }
 
 secrets_ciphertext = {

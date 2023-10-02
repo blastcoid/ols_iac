@@ -22,6 +22,11 @@ variable "kms_grant_operations" {
 }
 
 # Codepipeline arguments - required
+variable "name" {
+  type        = string
+  description = "The name of the CodePipeline."
+}
+
 variable "artifact_store" {
   type = object({
     location = string
@@ -98,4 +103,9 @@ variable "webhook_events" {
   type        = list(string)
   description = "A list of event types to be used for filtering. If no events are listed, the webhook is triggered for all event types."
   default     = []
+}
+
+variable "github_secret" {
+  type        = string
+  description = "The GitHub secret token used for authentication. Required if authentication is GITHUB_HMAC."
 }

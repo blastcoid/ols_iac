@@ -1,0 +1,16 @@
+apiVersion: karpenter.k8s.aws/v1alpha1
+kind: AWSNodeTemplate
+metadata:
+  name: default
+spec:
+  subnetSelector:
+    karpenter.sh/discovery: ${extra_vars.cluster_name}
+    Name: "*-node-*"
+  securityGroupSelector:
+    karpenter.sh/discovery: ${extra_vars.cluster_name}
+  amiFamily: Bottlerocket
+  amiSelector:
+      aws::ids: "${extra_vars.ami_id}"
+  instanceTypes:
+  tags:
+    karpenter.sh/discovery: ${extra_vars.cluster_name}

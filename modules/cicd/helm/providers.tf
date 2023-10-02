@@ -1,9 +1,9 @@
-# # Create kubectl provider
+# Create kubectl provider
 terraform {
   required_providers {
     kubectl = {
-      source  = "alon-dotan-starkware/kubectl"
-      version = "1.11.2"
+      source  = "gavinbunney/kubectl"
+      version = "1.14.0"
     }
   }
 }

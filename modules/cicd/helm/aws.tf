@@ -1,4 +1,5 @@
 data "aws_iam_policy_document" "oidc_assume_role_policy" {
+  count = var.cloud_provider == "aws" && var.create_service_account ? 1 : 0
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
     effect  = "Allow"
@@ -6,7 +7,7 @@ data "aws_iam_policy_document" "oidc_assume_role_policy" {
     condition {
       test     = "StringEquals"
       variable = "${replace(var.eks_oidc_url, "https://", "")}:sub"
-      values   = ["system:serviceaccount:${local.namespace}:${local.helm_naming_standard}"]
+      values   = ["system:serviceaccount:${local.namespace}:${local.sa_naming_standard}"]
     }
 
     principals {
@@ -19,15 +20,15 @@ data "aws_iam_policy_document" "oidc_assume_role_policy" {
 # IAM role for helm service account
 resource "aws_iam_role" "role" {
   count              = var.cloud_provider == "aws" && var.create_service_account ? 1 : 0
-  name               = "${local.helm_naming_standard}-iam-role"
-  assume_role_policy = data.aws_iam_policy_document.oidc_assume_role_policy.json
+  name               = "${local.sa_naming_standard}-iam-role"
+  assume_role_policy = data.aws_iam_policy_document.oidc_assume_role_policy[count.index].json
 }
 
 # IAM policy for helm service account
 resource "aws_iam_policy" "policy" {
   count       = var.cloud_provider == "aws" && var.create_service_account ? 1 : 0
-  name        = "${local.helm_naming_standard}-iam-policy"
-  description = "IAM policy for ${local.helm_naming_standard}-iam-policy"
+  name        = "${local.sa_naming_standard}-iam-policy"
+  description = "IAM policy for ${local.sa_naming_standard}-iam-policy"
   policy      = var.iam_policy
 }
 

@@ -1,6 +1,6 @@
 locals {
-  naming_standard   = var.standard.code != "repo" ? "${var.standard.unit}_${var.standard.code}_${var.standard.feature}" : "${var.standard.unit}_${var.standard.feature}"
-  create_repository = var.standard.env == "dev" || var.standard.env == "mstr" ? 1 : 0
+  naming_standard   = var.standard.Code != "repo" ? "${var.standard.Unit}_${var.standard.Code}_${var.standard.Feature}" : "${var.standard.Unit}_${var.standard.Feature}"
+  create_repository = var.standard.Env == "dev" || var.standard.Env == "mstr" ? 1 : 0
   template = var.template != null ? {
     for template_key, template_value in var.template : template_key => template_value
   } : {}
@@ -76,14 +76,14 @@ resource "github_repository" "repository" {
 }
 
 locals {
-  create_dev_branch = var.standard.env == "dev" || var.standard.env == "mstr" ? 1 : 0
-  create_stg_branch = (var.standard.env == "dev" || var.standard.env == "mstr") && (github_repository.repository[0].name == "ols_iac" || github_repository.repository[0].name == "ols_helm") ? 1 : 0
+  create_dev_branch = var.standard.Env == "dev" || var.standard.Env == "mstr" ? 1 : 0
+  create_stg_branch = (var.standard.Env == "dev" || var.standard.Env == "mstr") && (github_repository.repository[0].name == "ols_iac" || github_repository.repository[0].name == "ols_helm") ? 1 : 0
 }
 
 resource "github_branch" "dev" {
   count         = local.create_dev_branch
   repository    = github_repository.repository[0].name
-  branch        = var.standard.env == "mstr" ? "dev" : var.standard.env
+  branch        = var.standard.Env == "mstr" ? "dev" : var.standard.Env
   source_branch = var.default_branch
 }
 
@@ -185,7 +185,7 @@ resource "github_repository_deploy_key" "repository_deploy_key" {
 }
 
 resource "kubernetes_secret_v1" "argocd" {
-  count = var.argocd_namespace != null ? 1 : 0
+  count = var.argocd_namespace != null && var.ssh_key != null ? 1 : 0
   metadata {
     name      = replace(github_repository.repository[count.index].name, "_", "-")
     namespace = var.argocd_namespace
@@ -203,7 +203,7 @@ resource "kubernetes_secret_v1" "argocd" {
 
 resource "github_repository_environment" "environment" {
   count       = length(var.github_action_secrets) > 0 ? 1 : 0
-  environment = "${github_repository.repository[count.index].name}_${var.standard.env}"
+  environment = "${github_repository.repository[count.index].name}_${var.standard.Env}"
   repository  = github_repository.repository[count.index].name
 }
 

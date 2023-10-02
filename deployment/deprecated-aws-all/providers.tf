@@ -8,7 +8,6 @@ locals {
 provider "aws" {
   region  = var.region
   profile = "${var.unit}-${var.env}"
-  profile = "${var.unit}-${var.env}"
   dynamic "assume_role" {
     for_each = local.is_ec2_environment ? [] : [1]
     content {

@@ -64,8 +64,8 @@ data "external" "get_max_pods" {
 }
 
 # Wait for the cluster to be ready
-data "http" "wait_for_cluster" {
-  url            = format("%s/healthz", aws_eks_cluster.cluster.endpoint)
-  ca_certificate = base64decode(aws_eks_cluster.cluster.certificate_authority.0.data)
-  timeout        = var.wait_for_cluster_timeout
-}
+# data "http" "wait_for_cluster" {
+#   url                = format("%s/healthz", aws_eks_cluster.cluster.endpoint)
+#   ca_cert_pem        = base64decode(aws_eks_cluster.cluster.certificate_authority.0.data)
+#   request_timeout_ms = var.wait_for_cluster_timeout
+# }

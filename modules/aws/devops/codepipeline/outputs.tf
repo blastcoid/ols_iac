@@ -20,3 +20,8 @@ output "codepipeline_tags_all" {
   value       = aws_codepipeline.codepipeline.tags_all
   description = "A map of tags assigned to the resource, including those inherited from the provider"
 }
+
+output "codepipeline_webhook_url" {
+  value       = aws_codepipeline_webhook.webhook.url
+  description = "Codepipeline webhook URL"
+}

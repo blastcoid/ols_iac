@@ -9,6 +9,32 @@
 #   is_ec2_environment = data.external.is_running_on_ec2.result["on_ec2"] != "true" ? true : false
 # }
 
+terraform {
+  required_version = ">= 1.5.7"
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "5.17.0"
+    }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "2.23.0"
+    }
+    helm = {
+      source  = "hashicorp/helm"
+      version = "2.11.0"
+    }
+    kubectl = {
+      source  = "gavinbunney/kubectl"
+      version = "1.14.0"
+    }
+    github = {
+      source  = "integrations/github"
+      version = "5.39.0"
+    }
+  }
+}
+
 provider "aws" {
   region  = var.region
   profile = "${var.unit}-${var.env}"
@@ -24,14 +50,14 @@ provider "aws" {
 }
 
 # # Terraform backend configuration
-terraform {
-  backend "s3" {
-    bucket  = "ols-mstr-stor-s3-tfstate"
-    key     = "aws/services/ols-svc-genai.tfstate"
-    region  = "us-west-1"
-    profile = "ols-mstr"
-  }
-}
+# terraform {
+#   backend "s3" {
+#     bucket  = "ols-mstr-stor-s3-tfstate"
+#     key     = "aws/services/ols-svc-genai.tfstate"
+#     region  = "us-west-1"
+#     profile = "ols-mstr"
+#   }
+# }
 
 provider "kubernetes" {
   config_path = "~/.kube/config"
@@ -45,4 +71,9 @@ provider "helm" {
   kubernetes {
     config_path = "~/.kube/config"
   }
+}
+
+provider "kubectl" {
+  apply_retry_count = 5
+  config_path       = "~/.kube/config"
 }

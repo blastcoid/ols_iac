@@ -9,6 +9,11 @@ variable "standard" {
   description = "A map containing standard naming convention variables for resources."
 }
 
+variable "name" {
+  type        = string
+  description = "The name of the build project."
+}
+
 # Codestar arguments
 variable "provider_type" {
   type        = string

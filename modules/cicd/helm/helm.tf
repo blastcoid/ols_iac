@@ -7,26 +7,30 @@ resource "kubernetes_namespace" "namespace" {
 }
 
 locals {
-  naming_standard = "${var.standard.unit}-${var.standard.env}-${var.standard.code}-${var.standard.feature}-${var.standard.sub}"
-  helm_naming_standard = "${var.standard.unit}-${var.standard.env}-${var.standard.feature}-${var.standard.sub}"
-  namespace       = var.create_namespace ? kubernetes_namespace.namespace[0].metadata[0].name : var.namespace
+  sa_naming_standard   = try("${var.standard.Unit}-${var.standard.Env}-${var.standard.Feature}-${var.standard.Sub}", "${var.standard.Unit}-${var.standard.Env}-${var.standard.Code}-${var.standard.Feature}")
+  helm_naming_standard = try("${var.standard.Unit}-${var.standard.Sub}", "${var.standard.Unit}-${var.standard.Code}-${var.standard.Feature}")
+  namespace            = var.create_namespace ? kubernetes_namespace.namespace[0].metadata[0].name : var.namespace
 }
 
 resource "helm_release" "helm" {
-  name       = "${var.standard.unit}-${var.standard.sub}"
-  repository = var.repository
-  chart      = var.chart
+  name                = var.override_name != null ? var.override_name : local.helm_naming_standard
+  repository          = var.repository
+  repository_username = var.repository_username
+  repository_password = var.repository_password
+  chart               = var.chart
+  version             = var.helm_version
   values = length(var.values) > 0 ? sensitive([
     "${templatefile(
-      "helm/${var.standard.sub}.yaml",
+      "helm/${try(var.standard.Sub, var.standard.Feature)}.yaml",
       {
-        service_account_name = local.helm_naming_standard
-        unit                 = var.standard.unit
-        code                 = var.standard.code
-        env                  = var.standard.env
-        feature              = var.standard.feature
+        service_account_name = local.sa_naming_standard
+        unit                 = var.standard.Unit
+        code                 = var.standard.Code
+        env                  = var.standard.Env
+        feature              = var.standard.Feature
+        sub                  = try(var.standard.Sub, null)
         dns_name             = var.dns_name
-        service_account_annotation = var.cloud_provider == "gcp" && var.create_service_account ? google_service_account.gsa[0].email : (
+        service_account_arn  = var.cloud_provider == "gcp" && var.create_service_account ? google_service_account.gsa[0].email : (
           var.cloud_provider == "aws" && var.create_service_account ? aws_iam_role.role[0].arn : null
         )
         extra_vars = var.extra_vars
@@ -66,14 +70,44 @@ resource "helm_release" "helm" {
   }
 }
 
-resource "kubernetes_manifest" "after_helm_manifest" {
-  count = var.after_helm_manifest != null ? 1 : 0
-  manifest = yamldecode(templatefile("${replace(var.standard.feature, "-", "_")}/${var.after_helm_manifest}", {
-    unit                 = var.standard.unit
-    env                  = var.standard.env
-    code                 = var.standard.code
-    feature              = var.standard.feature
-    service_account_name = local.helm_naming_standard,
+# resource "kubernetes_manifest" "manifest" {
+#   count = var.after_helm_manifest != null ? 1 : 0
+#   manifest = yamldecode(templatefile("${replace(var.standard.Feature, "-", "_")}/${var.after_helm_manifest}", {
+#     unit                 = var.standard.Unit
+#     env                  = var.standard.Env
+#     code                 = var.standard.Code
+#     feature              = var.standard.Feature
+#     service_account_name = local.sa_naming_standard,
+#     namespace            = local.namespace,
+#     dns_name             = var.dns_name
+#     extra_vars           = var.extra_vars
+#   }))
+#   depends_on = [helm_release.helm]
+# }
+
+# resource "kubectl_manifest" "after_crd_installed" {
+#   count = var.after_crd_installed != null ? 1 : 0
+#   yaml_body = templatefile("${replace(var.standard.Feature, "-", "_")}/${var.after_crd_installed}", {
+#     unit                 = var.standard.Unit
+#     env                  = var.standard.Env
+#     code                 = var.standard.Code
+#     feature              = var.standard.Feature
+#     service_account_name = local.sa_naming_standard,
+#     namespace            = local.namespace,
+#     dns_name             = var.dns_name
+#     extra_vars           = var.extra_vars
+#   })
+#   depends_on = [helm_release.helm]
+# }
+
+resource "kubernetes_manifest" "manifests" {
+  count = length(var.k8s_manifests)
+  manifest = yamldecode(templatefile("k8s/${var.k8s_manifests[count.index]}", {
+    unit                 = var.standard.Unit
+    env                  = var.standard.Env
+    code                 = var.standard.Code
+    feature              = var.standard.Feature
+    service_account_name = local.sa_naming_standard,
     namespace            = local.namespace,
     dns_name             = var.dns_name
     extra_vars           = var.extra_vars
@@ -81,18 +115,17 @@ resource "kubernetes_manifest" "after_helm_manifest" {
   depends_on = [helm_release.helm]
 }
 
-resource "kubectl_manifest" "after_crd_installed" {
-  count = var.after_crd_installed != null ? 1 : 0
-  yaml_body = templatefile("${replace(var.standard.feature, "-", "_")}/${var.after_crd_installed}", {
-    unit                 = var.standard.unit
-    env                  = var.standard.env
-    code                 = var.standard.code
-    feature              = var.standard.feature
-    service_account_name = local.helm_naming_standard,
+resource "kubectl_manifest" "manifests" {
+  count = length(var.kubectl_manifests)
+  yaml_body = templatefile("k8s/${var.kubectl_manifests[count.index]}", {
+    unit                 = var.standard.Unit
+    env                  = var.standard.Env
+    code                 = var.standard.Code
+    feature              = var.standard.Feature
+    service_account_name = local.sa_naming_standard,
     namespace            = local.namespace,
     dns_name             = var.dns_name
     extra_vars           = var.extra_vars
   })
   depends_on = [helm_release.helm]
 }
-

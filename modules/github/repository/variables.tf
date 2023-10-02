@@ -247,7 +247,7 @@ variable "webhooks" {
     active = bool
     events = list(string)
   }))
-  description = "List of webhooks to be created"
+  description = "Map of webhooks to be added to the repository"
   default     = {}
 }
 

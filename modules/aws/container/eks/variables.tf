@@ -216,7 +216,11 @@ variable "eks_vpc_cni_sg_ingress_rules" {
   default     = []
 }
 
-# AWS Auth Configmap arguments
+variable "wait_for_cluster_timeout" {
+  description = "Timeout in seconds to wait for EKS cluster to become ready."
+  type        = number
+  default     = 300
+}
 variable "map_accounts" {
   description = "Additional AWS account numbers to add to the aws-auth configmap."
   type        = list(string)

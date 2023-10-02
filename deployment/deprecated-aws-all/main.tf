@@ -423,51 +423,51 @@ module "eks_main" {
   # ]
 }
 
-module "external_dns" {
-  source = "../../modules/cicd/helm"
-  region = var.region
-  standard = {
-    unit    = var.unit
-    env     = var.env
-    code    = "cicd"
-    feature = "helm"
-    sub     = "external-dns"
-  }
-  cloud_provider         = "aws"
-  repository             = "https://charts.bitnami.com/bitnami"
-  chart                  = "external-dns"
-  create_service_account = true
-  iam_policy             = data.aws_iam_policy_document.externaldns_policy.json
-  eks_oidc_arn           = module.eks_main.oidc_provider_arn
-  eks_oidc_url           = module.eks_main.oidc_provider_url
-  values                 = ["${file("helm/external-dns.yaml")}"]
-  helm_sets = [
-    {
-      name  = "provider"
-      value = "aws"
-    },
-    {
-      name  = "aws.region"
-      value = var.region
-    },
-    {
-      name  = "policy"
-      value = "sync"
-    },
-    {
-      name  = "aws.zoneType"
-      value = "public"
-    }
-  ]
-  helm_sets_list = [
-    {
-      name  = "sources"
-      value = ["service", "ingress"]
-    }
-  ]
-  namespace        = "ingress"
-  create_namespace = true
-  depends_on = [
-    module.eks_main
-  ]
-}
+# module "external_dns" {
+#   source = "../../modules/cicd/helm"
+#   region = var.region
+#   standard = {
+#     unit    = var.unit
+#     env     = var.env
+#     code    = "cicd"
+#     feature = "helm"
+#     sub     = "external-dns"
+#   }
+#   cloud_provider         = "aws"
+#   repository             = "https://charts.bitnami.com/bitnami"
+#   chart                  = "external-dns"
+#   create_service_account = true
+#   iam_policy             = data.aws_iam_policy_document.externaldns_policy.json
+#   eks_oidc_arn           = module.eks_main.oidc_provider_arn
+#   eks_oidc_url           = module.eks_main.oidc_provider_url
+#   values                 = ["${file("helm/external-dns.yaml")}"]
+#   helm_sets = [
+#     {
+#       name  = "provider"
+#       value = "aws"
+#     },
+#     {
+#       name  = "aws.region"
+#       value = var.region
+#     },
+#     {
+#       name  = "policy"
+#       value = "sync"
+#     },
+#     {
+#       name  = "aws.zoneType"
+#       value = "public"
+#     }
+#   ]
+#   helm_sets_list = [
+#     {
+#       name  = "sources"
+#       value = ["service", "ingress"]
+#     }
+#   ]
+#   namespace        = "ingress"
+#   create_namespace = true
+#   depends_on = [
+#     module.eks_main
+#   ]
+# }

@@ -1,0 +1,5 @@
+serviceAccount:
+  name: "${service_account_name}"
+  annotations:
+    eks.amazonaws.com/role-arn: "${service_account_arn}"
+    eks.amazonaws.com/sts-regional-endpoints: "true"
