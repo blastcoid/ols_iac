@@ -18,10 +18,10 @@ data "tls_public_key" "public_key" {
 module "github_repository" {
   source = "../../../../modules/github/repository"
   standard = {
-    unit    = var.unit
-    env     = var.env
-    code    = "repo"
-    feature = "helm"
+    Unit    = var.unit
+    Env     = var.env
+    Code    = "repo"
+    Feature = "helm"
   }
   visibility             = "public"
   has_issues             = true
@@ -78,7 +78,7 @@ module "github_repository" {
     devops     = "triage"
   }
   public_key              = data.tls_public_key.public_key.public_key_openssh
-  ssh_key                 = data.aws_ssm_parameter.ssh_key.value
+  # ssh_key                 = data.aws_ssm_parameter.ssh_key.value
   is_deploy_key_read_only = false
-  argocd_namespace        = "cd"
+  # argocd_namespace        = "cd"
 }

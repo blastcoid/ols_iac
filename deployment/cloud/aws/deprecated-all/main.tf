@@ -1,6 +1,6 @@
 # KMS module
 module "kms_main" {
-  source = "../../modules/aws/security/kms"
+  source = "../../../../modules/aws/security/kms"
   region = var.region
 
   standard = {
@@ -69,7 +69,7 @@ module "kms_main" {
 
 # S3 module
 module "s3_bucket_tfstate" {
-  source     = "../../modules/aws/storage/s3"
+  source     = "../../../../modules/aws/storage/s3"
   region     = var.region
   account_id = data.aws_caller_identity.current.account_id
   standard = {
@@ -92,7 +92,7 @@ module "s3_bucket_tfstate" {
 }
 
 module "keypair_main" {
-  source = "../../modules/aws/compute/keypair"
+  source = "../../../../modules/aws/compute/keypair"
   region = var.region
   standard = {
     unit    = var.unit
@@ -114,7 +114,7 @@ locals {
 }
 
 module "ssm_params" {
-  source = "../../modules/aws/devops/ssm"
+  source = "../../../../modules/aws/devops/ssm"
   region = var.region
   standard = {
     unit    = var.unit
@@ -130,7 +130,7 @@ module "ssm_params" {
 }
 
 module "route53_main" {
-  source = "../../modules/aws/network/route53"
+  source = "../../../../modules/aws/network/route53"
   standard = {
     unit    = var.unit
     env     = var.env
@@ -143,7 +143,7 @@ module "route53_main" {
 }
 
 module "vpc_main" {
-  source = "../../modules/aws/network/vpc"
+  source = "../../../../modules/aws/network/vpc"
   region = var.region
   standard = {
     unit    = var.unit
@@ -161,7 +161,7 @@ module "vpc_main" {
 }
 
 module "eks_main" {
-  source = "../../modules/aws/container/eks"
+  source = "../../../../modules/aws/container/eks"
   region = var.region
   standard = {
     unit    = var.unit
@@ -424,7 +424,7 @@ module "eks_main" {
 }
 
 # module "external_dns" {
-#   source = "../../modules/cicd/helm"
+#   source = "../../../../modules/cicd/helm"
 #   region = var.region
 #   standard = {
 #     unit    = var.unit

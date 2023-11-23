@@ -41,9 +41,9 @@ resource "aws_eip" "eip" {
 # Each NAT Gateway is associated with an Elastic IP.
 # These NAT Gateways are tagged based on the naming standard.
 resource "aws_nat_gateway" "nat" {
-  count         = var.standard.env != "dev" && var.standard.env != "mstr" ? length(aws_subnet.public) : 1
-  allocation_id = var.standard.env != "dev" && var.standard.env != "mstr" ? element(aws_eip.eip.*.id, count.index) : aws_eip.eip.0.id
-  subnet_id     = var.standard.env != "dev" && var.standard.env != "mstr" ? element(aws_subnet.public.*.id, count.index) : aws_subnet.public.0.id
+  count         = var.standard.env != "dev" ? length(aws_subnet.public) : 1
+  allocation_id = var.standard.env != "dev" ? element(aws_eip.eip.*.id, count.index) : aws_eip.eip.0.id
+  subnet_id     = var.standard.env != "dev" ? element(aws_subnet.public.*.id, count.index) : aws_subnet.public.0.id
 
   tags = {
     "Name"    = "${local.naming_standard}-nat-${split("-", element(data.aws_availability_zones.az.names, count.index))[2]}"

@@ -1,13 +1,13 @@
 
 # Create terraform state
-terraform {
-  backend "s3" {
-    bucket  = "ols-mstr-stor-s3-tfstate"
-    key     = "aws/cloud/ols-mstr-cloud-resources.tfstate"
-    region  = "us-west-1"
-    profile = "ols-mstr"
-  }
-}
+# terraform {
+#   backend "s3" {
+#     bucket  = "ols-mstr-stor-s3-tfstate"
+#     key     = "aws/cloud/ols-mstr-cloud-resources.tfstate"
+#     region  = "us-west-1"
+#     profile = "ols-mstr"
+#   }
+# }
 
 # Create General purpose KMS key
 module "kms_main" {
@@ -22,7 +22,7 @@ module "kms_main" {
     # required for the ASG to manage encrypted volumes for nodes
     "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling",
     # required for the cluster / persistentvolume-controller to create encrypted PVCs
-    module.eks_main.cluster_iam_role_arn
+    # module.eks_main.cluster_iam_role_arn
   ]
   tags = merge(local.tags, local.kms_standard, { Name = local.kms_naming_standard })
 }
@@ -107,7 +107,7 @@ module "acm_main" {
   zone_id     = module.zones_main.route53_zone_zone_id[local.route53_domain_name]
 
   subject_alternative_names = [
-    "*.${var.env}.${local.route53_domain_name}"
+    "*.${var.env}.${local.route53_domain_name}",
   ]
 
   wait_for_validation = true
@@ -183,7 +183,21 @@ module "vpc_cni_irsa" {
       namespace_service_accounts = ["kube-system:aws-node"]
     }
   }
+  tags = local.tags
+}
 
+module "ebs_csi_irsa" {
+  source = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+
+  role_name             = local.vpc_cni_naming_standard
+  attach_ebs_csi_policy = true
+
+  oidc_providers = {
+    main = {
+      provider_arn               = module.eks_main.oidc_provider_arn
+      namespace_service_accounts = ["kube-system:ebs-csi-controller-sa"]
+    }
+  }
   tags = local.tags
 }
 
@@ -196,7 +210,7 @@ module "eks_main" {
   subnet_ids               = slice(module.vpc_main.private_subnets, 0, length(local.azs))
   enable_irsa              = true
   create_kms_key           = false
-  cluster_version          = "1.27"
+  cluster_version          = "1.28"
   cluster_name             = local.eks_naming_standard
   cluster_encryption_config = {
     provider_key_arn = module.kms_main.key_arn
@@ -209,30 +223,6 @@ module "eks_main" {
   cluster_addons = {
     coredns = {
       most_recent = true
-      # # Uncomment if only using Fargate
-      # configuration_values = jsonencode({
-      #   computeType = "Fargate"
-      #   # Ensure that we fully utilize the minimum amount of resources that are supplied by
-      #   # Fargate https://docs.aws.amazon.com/eks/latest/userguide/fargate-pod-configuration.html
-      #   # Fargate adds 256 MB to each pod's memory reservation for the required Kubernetes
-      #   # components (kubelet, kube-proxy, and containerd). Fargate rounds up to the following
-      #   # compute configuration that most closely matches the sum of vCPU and memory requests in
-      #   # order to ensure pods always have the resources that they need to run.
-      #   resources = {
-      #     limits = {
-      #       cpu = "0.25"
-      #       # We are targeting the smallest Task size of 512Mb, so we subtract 256Mb from the
-      #       # request/limit to ensure we can fit within that task
-      #       memory = "256M"
-      #     }
-      #     requests = {
-      #       cpu = "0.25"
-      #       # We are targeting the smallest Task size of 512Mb, so we subtract 256Mb from the
-      #       # request/limit to ensure we can fit within that task
-      #       memory = "256M"
-      #     }
-      #   }
-      # })
     }
     kube-proxy = {
       most_recent = true
@@ -266,6 +256,10 @@ module "eks_main" {
           WARM_PREFIX_TARGET       = "1"
         }
       })
+    }
+    aws-ebs-csi-driver = {
+      service_account_role_arn = module.ebs_csi_irsa.iam_role_arn
+      most_recent              = true
     }
   }
   node_security_group_tags = {
@@ -337,31 +331,19 @@ module "eks_main" {
   }
 
   # aws-auth configmap
-  manage_aws_auth_configmap = true
-  # Uncomment if only using Fargate
-  # aws_auth_roles = [
-  #   # We need to add in the Karpenter node IAM role for nodes launched by Karpenter
+  # manage_aws_auth_configmap = true
+  # aws_auth_users = [
   #   {
-  #     rolearn  = module.eks_main_karpenter.role_arn
-  #     username = "system:node:{{EC2PrivateDNSName}}"
-  #     groups = [
-  #       "system:bootstrappers",
-  #       "system:nodes",
-  #     ]
+  #     userarn  = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+  #     username = "root"
+  #     groups   = ["system:masters"]
+  #   },
+  #   {
+  #     userarn  = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/imam.arief.rhmn@gmail.com"
+  #     username = "imam.arief.rhmn@gmail.com"
+  #     groups   = ["system:masters"]
   #   },
   # ]
-  aws_auth_users = [
-    {
-      userarn  = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
-      username = "root"
-      groups   = ["system:masters"]
-    },
-    {
-      userarn  = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/imam.arief.rhmn@gmail.com"
-      username = "imam.arief.rhmn@gmail.com"
-      groups   = ["system:masters"]
-    },
-  ]
   tags = merge(
     local.tags,
     local.eks_standard,
@@ -369,155 +351,4 @@ module "eks_main" {
       "karpenter.sh/discovery" = local.eks_naming_standard
     }
   )
-}
-
-module "eks_main_karpenter" {
-  source = "terraform-aws-modules/eks/aws//modules/karpenter"
-
-  cluster_name = module.eks_main.cluster_name
-
-  irsa_oidc_provider_arn          = module.eks_main.oidc_provider_arn
-  irsa_namespace_service_accounts = ["kube-system:karpenter"]
-  create_iam_role                 = false
-  iam_role_arn                    = module.eks_main.eks_managed_node_groups["ng-spot-general"].iam_role_arn
-  policies = {
-    AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-  }
-  tags = local.tags
-}
-
-module "helm_karpenter" {
-  source        = "../../modules/cicd/helm"
-  region        = var.region
-  override_name = "karpenter"
-  standard      = local.karpenter_standard
-  repository    = "oci://public.ecr.aws/karpenter"
-  # repository_username = data.aws_ecrpublic_authorization_token.token.user_name
-  # repository_password = data.aws_ecrpublic_authorization_token.token.password
-  chart             = "karpenter"
-  helm_version      = "v0.30.0"
-  namespace         = "kube-system"
-  values            = ["${file("helm/karpenter.yaml")}"]
-  cloud_provider    = "aws"
-  kubectl_manifests = ["karpenter-provisioner.yaml", "karpenter-node-template.yaml", "inflate-deployment.yaml"]
-  extra_vars = {
-    cluster_name             = module.eks_main.cluster_name
-    cluster_endpoint         = module.eks_main.cluster_endpoint
-    default_instance_profile = module.eks_main_karpenter.instance_profile_name
-    interruption_queue_name  = module.eks_main_karpenter.queue_name
-    karpenter_irsa_arn       = module.eks_main_karpenter.irsa_arn
-    ami_id                   = data.aws_ami.bottlerocket.image_id
-  }
-}
-
-module "alb-controller" {
-  source                 = "../../modules/cicd/helm"
-  region                 = var.region
-  standard               = local.alb_controller_standard
-  cloud_provider         = "aws"
-  repository             = "https://aws.github.io/eks-charts"
-  chart                  = "aws-load-balancer-controller"
-  create_service_account = true
-  namespace              = "ingress"
-  create_namespace       = true
-  eks_oidc_arn           = module.eks_main.oidc_provider_arn
-  eks_oidc_url           = module.eks_main.cluster_oidc_issuer_url
-  values = [
-    "${file("helm/alb-controller.yaml")}"
-  ]
-  iam_policy = data.aws_iam_policy_document.aws_alb_ingress_controller_policy.json
-  extra_vars = {
-    cluster_name = module.eks_main.cluster_name
-  }
-  depends_on = [
-    module.eks_main
-  ]
-}
-
-module "external_dns" {
-  source                 = "../../modules/cicd/helm"
-  region                 = var.region
-  standard               = local.external_dns_standard
-  cloud_provider         = "aws"
-  repository             = "https://charts.bitnami.com/bitnami"
-  chart                  = "external-dns"
-  create_service_account = true
-  iam_policy             = data.aws_iam_policy_document.externaldns_policy.json
-  eks_oidc_arn           = module.eks_main.oidc_provider_arn
-  eks_oidc_url           = module.eks_main.cluster_oidc_issuer_url
-  values                 = ["${file("helm/external-dns.yaml")}"]
-  helm_sets = [
-    {
-      name  = "provider"
-      value = "aws"
-    },
-    {
-      name  = "aws.region"
-      value = var.region
-    },
-    {
-      name  = "policy"
-      value = "sync"
-    },
-    {
-      name  = "aws.zoneType"
-      value = "public"
-    }
-  ]
-  helm_sets_list = [
-    {
-      name  = "sources"
-      value = ["service", "ingress"]
-    }
-  ]
-  namespace = "ingress"
-  depends_on = [
-    module.eks_main
-  ]
-}
-
-module "argocd" {
-  source                 = "../../modules/cicd/helm"
-  region                 = var.region
-  standard               = local.argocd_standard
-  cloud_provider         = "aws"
-  repository             = "https://argoproj.github.io/argo-helm"
-  chart                  = "argo-cd"
-  create_service_account = true
-  iam_policy             = data.aws_iam_policy_document.argocd_policy.json
-  eks_oidc_arn           = module.eks_main.oidc_provider_arn
-  eks_oidc_url           = module.eks_main.cluster_oidc_issuer_url
-  values                 = ["${file("helm/argocd.yaml")}"]
-  helm_sets_sensitive = [
-    {
-      name  = "configs.secret.githubSecret"
-      value = module.ssm_params["github_secret"].secure_value
-    },
-    {
-      name  = "configs.secret.extra.dex\\.github\\.clientSecret"
-      value = module.ssm_params["github_oauth_client_secret"].secure_value
-    },
-  ]
-  namespace        = "cd"
-  create_namespace = true
-  dns_name         = local.route53_domain_name
-  extra_vars = {
-    server_insecure      = false
-    alb_certificate_arn  = module.acm_main.acm_certificate_arn
-    alb_ssl_policy       = "ELBSecurityPolicy-TLS13-1-2-2021-06"
-    alb_backend_protocol = "HTTPS"
-    alb_listen_ports     = "[{\"HTTPS\": 443}]"
-    alb_scheme           = "internet-facing"
-    alb_target_type      = "ip"
-    alb_group_order      = "100"
-    alb_healthcheck_path = "/"
-    github_orgs          = "blastcoid"
-    github_client_id     = "9781757e794562ceb7e1"
-    AVP_VERSION          = "1.16.1"
-  }
-  depends_on = [
-    module.eks_main,
-    module.external_dns,
-    module.alb-controller
-  ]
 }

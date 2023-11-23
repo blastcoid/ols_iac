@@ -8,7 +8,7 @@ terraform {
 
 # Deploy the VPC using the VPC module
 module "vpc_main" {
-  source = "../../modules/gcp/network/vpc"
+  source = "../../../../modules/gcp/network/vpc"
   region = var.region
   standard = {
     unit    = var.unit
@@ -147,7 +147,7 @@ data "terraform_remote_state" "vpc_main" {
 # create cloud dns module
 
 module "dns_blast" {
-  source = "../../modules/gcp/network/dns"
+  source = "../../../../modules/gcp/network/dns"
   region = var.region
   standard = {
     unit    = var.unit
@@ -179,7 +179,7 @@ data "google_kms_secret" "secrets" {
 }
 
 module "secret-manager" {
-  source = "../../modules/gcp/security/secret-manager"
+  source = "../../../../modules/gcp/security/secret-manager"
   region = var.region
   standard = {
     unit = var.unit
@@ -192,7 +192,7 @@ module "secret-manager" {
 # create gke from modules gke
 module "gke_main" {
   # Naming standard
-  source = "../../modules/gcp/compute/gke"
+  source = "../../../../modules/gcp/compute/gke"
   region = var.region
   standard = {
     unit    = var.unit
@@ -340,7 +340,7 @@ module "gke_main" {
 }
 
 module "blast_private_zone" {
-  source = "../../modules/gcp/network/dns"
+  source = "../../../../modules/gcp/network/dns"
   region = var.region
   standard = {
     unit    = var.unit
@@ -371,7 +371,7 @@ data "google_secret_manager_secret_version" "ssh_key" {
 
 # create gce from modules gce
 module "gce_atlantis" {
-  source = "../../modules/gcp/compute/gce"
+  source = "../../../../modules/gcp/compute/gce"
   region = var.region
   standard = {
     unit    = var.unit
@@ -454,7 +454,7 @@ module "gce_atlantis" {
 }
 
 module "external-dns" {
-  source = "../../modules/cicd/helm"
+  source = "../../../../modules/cicd/helm"
   region = var.region
   standard = {
     unit    = var.unit
@@ -496,7 +496,7 @@ module "external-dns" {
 }
 
 module "helm_nginx" {
-  source = "../../modules/cicd/helm"
+  source = "../../../../modules/cicd/helm"
   region = var.region
   standard = {
     unit    = var.unit
@@ -517,7 +517,7 @@ module "helm_nginx" {
 }
 
 module "helm_certmanager" {
-  source = "../../modules/cicd/helm"
+  source = "../../../../modules/cicd/helm"
   region = var.region
   standard = {
     unit    = var.unit
@@ -538,7 +538,7 @@ module "helm_certmanager" {
 }
 
 module "helm_argocd" {
-  source = "../../modules/cicd/helm"
+  source = "../../../../modules/cicd/helm"
   region = var.region
   standard = {
     unit    = var.unit
@@ -580,7 +580,7 @@ module "helm_argocd" {
 }
 
 module "firestore_main" {
-  source = "../../modules/gcp/db/firestore/database"
+  source = "../../../../modules/gcp/db/firestore/database"
   region = var.region
   standard = {
     unit    = var.unit
@@ -597,7 +597,7 @@ module "firestore_main" {
 }
 
 module "helm_mongodb" {
-  source               = "../../modules/cicd/helm"
+  source               = "../../../../modules/cicd/helm"
   region               = var.region
   env                  = var.env
   repository           = "https://charts.bitnami.com/bitnami"
@@ -656,7 +656,7 @@ module "helm_mongodb" {
 }
 
 module "helm_redis" {
-  source               = "../../modules/cicd/helm"
+  source               = "../../../../modules/cicd/helm"
   region               = var.region
   env                  = var.env
   repository           = "https://charts.bitnami.com/bitnami"

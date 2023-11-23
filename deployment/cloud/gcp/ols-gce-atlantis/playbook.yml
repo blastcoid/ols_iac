@@ -1,22 +1,2 @@
-- hosts: all
-  roles:
-    - role: setup_ansible
-      tags: 
-        - setup_ansible
-        - initialization
-    - role: setup_terraform
-      tags: 
-        - setup_terraform
-        - initialization
-    - role: setup_atlantis
-      tags: 
-        - setup_atlantis
-        - initialization
-    - role: setup_nginx
-      tags: 
-        - setup_nginx
-        - initialization
-    - role: setup_kubectl
-      tags: 
-        - setup_kubectl
-        - initialization
+curl --location 'https://pokemonmacau.com/load-data-detil/p30174-2' \
+--header 'Cookie: SRVNAME=88; laravel_session=eyJpdiI6IkgwYTVNeFQ1V2t2OHdLdGh1OEFkZnc9PSIsInZhbHVlIjoiWDkrVFV5SzBTQ3hpb2Rtc1JCZGJFSVNDTHBnc1U1a0dPS003Y2xldE10dUVhcmN1NGpaaUNhS2h4SkdObGZVbk1rT294WlN3RC9Qd0xZbmJFMXhHR01BSTZiQXgwNEYwWTY2U0dkUGh6b0QwWVg1YkUzNkRrYS9DcWszSDlmU1lJeWt3MDZCbS8rMVlHMEpKWkczQ25lc1U4ck9vdDJaRWROVThjQWZHSDR4Y3ozY0xVK0psamhGMk1idkh4dTYxaDR1VkR4VU9DNTBtOFB3Vkx1QVlzQ1hzZUUwY2ZDVGV3SjRHWEZDUG5zcXdFMXZ2OC90MkJsYzJWK3h2eEFzeGpwQmJSOEhJVDVyU1VrZ09MZkorSjVydTU1bm5uaHpOUUlZY0FmZm9nTWxpblFwZTNRdnY0V0czam5LTk1zZVlibXg4MkhnNUJ4WEYxbTF1bGdnNzhxb3JURnprcldQODBMMGVCWnNvSnc5WGRjNFpWa2NqdG14WVVtRjNJOXEyNU9EN2pWQlNsT1RNMFF4eEVIQjR3RzRiTzFUV1pQNThmYmRqMStaNU1hM2huVTRDbHZZbHlzNFFBZnlxbzhtclFCSE5FakFwV1VtcXJkL21saUw4bytZekFyT0daM1JuUVpnYVIvbUNONjY3K2xnbXV5T2Z1Q3VXMld4Mlh4VkYiLCJtYWMiOiJiM2MxYjViNDJjY2E3NjE5Zjg2NDA1ODZhZjBjNGQwODAyNDQwYjZjYWEwMzM0NjE0Njc1ODU0ZDFhNzE4OGM2IiwidGFnIjoiIn0%3D;'

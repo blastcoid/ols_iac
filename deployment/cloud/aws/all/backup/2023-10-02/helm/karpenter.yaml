@@ -1,0 +1,11 @@
+serviceAccount:
+  annotations:
+    eks.amazonaws.com/role-arn: "${extra_vars.karpenter_irsa_arn}"
+
+settings:
+  aws:
+    clusterName: "${extra_vars.cluster_name}"
+    clusterEndpoint: "${extra_vars.cluster_endpoint}"
+    defaultInstanceProfile: "${extra_vars.default_instance_profile}"
+    interruptionQueueName: "${extra_vars.interruption_queue_name}"
+    reservedENIs: 1

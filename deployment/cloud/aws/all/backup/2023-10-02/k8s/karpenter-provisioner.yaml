@@ -1,0 +1,41 @@
+apiVersion: karpenter.sh/v1alpha5
+kind: Provisioner
+metadata:
+  name: default
+spec:
+  requirements:
+    - key: karpenter.sh/capacity-type
+      operator: In
+      values: ["spot"]
+    - key: "karpenter.k8s.aws/instance-category"
+      operator: In
+      values: ["t"]
+    - key: "karpenter.k8s.aws/instance-cpu"
+      operator: In
+      values: ["2"]
+    - key: karpenter.k8s.aws/instance-family
+      operator: In
+      values: ["t4g"]
+    - key: karpenter.k8s.aws/instance-size
+      operator: In
+      values: ["medium"]
+    - key: "karpenter.k8s.aws/instance-hypervisor"
+      operator: In
+      values: ["nitro"]
+    - key: "karpenter.k8s.aws/instance-generation"
+      operator: In
+      values: ["4"]
+    - key: "topology.kubernetes.io/zone"
+      operator: In
+      values: ["us-west-1a", "us-west-1b"]
+    - key: "kubernetes.io/arch"
+      operator: In
+      values: ["arm64"]
+  kubeletConfiguration:
+    maxPods: 110
+  limits:
+    resources:
+      cpu: 1000
+  providerRef:
+    name: default
+  ttlSecondsAfterEmpty: 30
