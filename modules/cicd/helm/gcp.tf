@@ -37,7 +37,7 @@ resource "google_service_account_iam_binding" "token_creator" {
 resource "google_service_account_iam_binding" "workload_identity_binding" {
   count              = var.cloud_provider == "gcp" && var.create_service_account && var.use_workload_identity ? 1 : 0
   service_account_id = google_service_account.gsa[0].name
-  role               = "roles/iam.workloadIdentityUser"
+  role               = "roles/iam.workloadIdentityUser"Í
   members = var.standard.Feature != "argocd" ? [
     "serviceAccount:${var.project_id}.svc.id.goog[${local.namespace}/${local.sa_naming_standard}]"
     ] : [

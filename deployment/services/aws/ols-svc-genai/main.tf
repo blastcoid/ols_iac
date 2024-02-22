@@ -326,31 +326,31 @@ module "github_repository" {
 #   github_secret          = module.ssm_params["github_secret"].secure_value
 # }
 
-# module "argocd_app" {
-#   source         = "../../../../modules/cicd/helm"
-#   region         = var.region
-#   standard       = local.svc_standard
-#   cloud_provider = "aws"
-#   repository     = "https://argoproj.github.io/argo-helm"
-#   chart          = "argocd-apps"
-#   values         = ["${file("helm/${local.svc_standard.Feature}.yaml")}"]
-#   namespace      = "cd"
-#   project_id     = "${var.unit}-platform-${var.env}"
-#   dns_name       = "${var.env}.ols.blast.co.id" #trimsuffix(data.terraform_remote_state.dns_blast.outputs.dns_name, ".")
-#   extra_vars = {
-#     argocd_namespace      = "cd"
-#     source_repoURL        = "https://github.com/blastcoid/ols_helm"
-#     source_targetRevision = "HEAD"
-#     source_path = var.env == "dev" || var.env == "mstr" ? "charts/incubator/${local.svc_name}" : (
-#       var.env == "stg" ? "charts/test/${local.svc_name}" : "charts/stable/${local.svc_name}"
-#     )
-#     project                                = "default"
-#     destination_server                     = "https://kubernetes.default.svc"
-#     destination_namespace                  = var.env
-#     avp_type                               = "awssecretsmanager"
-#     region                                 = var.region
-#     syncPolicy_automated_prune             = true
-#     syncPolicy_automated_selfHeal          = true
-#     syncPolicy_syncOptions_CreateNamespace = true
-#   }
-# }
+module "argocd_app" {
+  source         = "../../../../modules/cicd/helm"
+  region         = var.region
+  standard       = local.svc_standard
+  cloud_provider = "aws"
+  repository     = "https://argoproj.github.io/argo-helm"
+  chart          = "argocd-apps"
+  values         = ["${file("helm/${local.svc_standard.Feature}.yaml")}"]
+  namespace      = "cd"
+  project_id     = "${var.unit}-platform-${var.env}"
+  dns_name       = "${var.env}.ols.blast.co.id" #trimsuffix(data.terraform_remote_state.dns_blast.outputs.dns_name, ".")
+  extra_vars = {
+    argocd_namespace      = "cd"
+    source_repoURL        = "https://github.com/blastcoid/ols_helm"
+    source_targetRevision = "HEAD"
+    source_path = var.env == "dev" || var.env == "mstr" ? "charts/incubator/${local.svc_name}" : (
+      var.env == "stg" ? "charts/test/${local.svc_name}" : "charts/stable/${local.svc_name}"
+    )
+    project                                = "default"
+    destination_server                     = "https://kubernetes.default.svc"
+    destination_namespace                  = var.env
+    avp_type                               = "awssecretsmanager"
+    region                                 = var.region
+    syncPolicy_automated_prune             = true
+    syncPolicy_automated_selfHeal          = true
+    syncPolicy_syncOptions_CreateNamespace = true
+  }
+}
